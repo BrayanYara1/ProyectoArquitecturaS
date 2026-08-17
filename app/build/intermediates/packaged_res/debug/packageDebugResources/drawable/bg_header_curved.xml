@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="412dp"
+    android:height="100dp"
+    android:viewportWidth="412"
+    android:viewportHeight="100">
+    <!-- Una curva más pronunciada y moderna para el diseño de primer nivel -->
+    <path
+        android:fillColor="#F8FAFC"
+        android:pathData="M0,50C100,0 312,0 412,50V100H0V50Z" />
+</vector>

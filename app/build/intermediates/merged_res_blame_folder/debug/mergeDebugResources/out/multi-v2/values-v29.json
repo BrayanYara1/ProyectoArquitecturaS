@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.example.gestionturnosapp-mergeDebugResources-76:/values-v29/values-v29.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\andyb\\.gradle\\caches\\9.4.1\\transforms\\aed7b4aba8af2f366dbc7e6f1501b997\\transformed\\core-splashscreen-1.1.0-rc01\\res\\values-v29\\values-v29.xml",
+                    "from": {
+                        "startLines": "2,7",
+                        "startColumns": "4,4",
+                        "startOffsets": "55,374",
+                        "endLines": "6,8",
+                        "endColumns": "12,12",
+                        "endOffsets": "369,464"
+                    }
+                }
+            ]
+        }
+    ]
+}

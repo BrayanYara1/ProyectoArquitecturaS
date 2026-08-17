@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="new_appointment"
+        android:enabled="true"
+        android:icon="@drawable/ic_add_circle"
+        android:shortcutShortLabel="@string/dash_request_appointment">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.example.gestionturnosapp"
+            android:targetClass="com.example.gestionturnosapp.MainActivity">
+            <extra android:name="type" android:value="new_appointment" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="emergency"
+        android:enabled="true"
+        android:icon="@drawable/ic_emergency"
+        android:shortcutShortLabel="@string/dash_emergencies">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.example.gestionturnosapp"
+            android:targetClass="com.example.gestionturnosapp.MainActivity">
+            <extra android:name="type" android:value="emergency" />
+        </intent>
+    </shortcut>
+</shortcuts>

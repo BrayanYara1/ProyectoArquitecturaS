@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_app_modern">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        app:elevation="0dp">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="200dp">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_main_gradient" />
+
+            <View
+                android:id="@+id/headerCurve"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:background="@drawable/bg_header_curved"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+            <LinearLayout
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:paddingTop="32dp"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginBottom="4dp"
+                    android:src="@drawable/ic_nav_calendar"
+                    app:tint="#40FFFFFF"
+                    android:contentDescription="@null" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_my_appointments_short"
+                    android:textColor="@color/white"
+                    android:textSize="24sp"
+                    android:fontFamily="sans-serif-black"
+                    android:textAlignment="center"
+                    android:letterSpacing="-0.02" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/label_manage_consult_appointments"
+                    android:textColor="#CCFFFFFF"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textAlignment="center" />
+
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="24dp"
+            android:layout_marginTop="-50dp"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="10dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/outline">
+
+
+            <androidx.appcompat.widget.SearchView
+                android:id="@+id/searchView"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                app:iconifiedByDefault="false"
+                app:queryHint="@string/hint_search_appointments"
+                app:queryBackground="@android:color/transparent"
+                app:searchIcon="@drawable/ic_nav_search" />
+        </com.google.android.material.card.MaterialCardView>
+
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            android:paddingHorizontal="24dp"
+            android:clipToPadding="false"
+            android:layout_marginBottom="12dp">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupFilters"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleSelection="true"
+                app:selectionRequired="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipAll"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="@string/filter_all"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-black"
+                    app:chipCornerRadius="10dp"
+                    android:checked="true" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipPending"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="@string/label_filter_pending"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-black"
+                    app:chipCornerRadius="10dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipCompleted"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="@string/label_filter_completed"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-black"
+                    app:chipCornerRadius="10dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipCancelled"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="@string/label_filter_cancelled"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-black"
+                    app:chipCornerRadius="10dp" />
+
+            </com.google.android.material.chip.ChipGroup>
+        </HorizontalScrollView>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvTurnos"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="120dp"
+            android:paddingTop="8dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_turno" />
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:id="@+id/shimmerViewContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:visibility="gone">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+            <include layout="@layout/item_turno_skeleton" />
+            <include layout="@layout/item_turno_skeleton" />
+            <include layout="@layout/item_turno_skeleton" />
+        </LinearLayout>
+    </com.facebook.shimmer.ShimmerFrameLayout>
+
+    <include
+        android:id="@+id/layoutEmpty"
+        layout="@layout/layout_empty_state"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:visibility="gone" />
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fabAddTurno"
+        android:layout_width="wrap_content"
+        android:layout_height="56dp"
+        android:layout_margin="20dp"
+        android:layout_gravity="bottom|end"
+        android:text="@string/btn_schedule_appointment"
+        android:textColor="@color/white"
+        android:fontFamily="sans-serif-black"
+        android:textSize="13sp"
+        app:icon="@drawable/ic_add_circle"
+        app:iconTint="@color/white"
+        app:backgroundTint="@color/primary"
+        app:elevation="8dp"
+        app:cornerRadius="16dp" />
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -1,0 +1,1 @@
+{"className":"com.example.gestionturnosapp.notifications.Hilt_ReminderReceiver","classAnnotations":["dagger.hilt.android.internal.OnReceiveBytecodeInjectionMarker"],"interfaces":[],"superClasses":["android.content.BroadcastReceiver","java.lang.Object"]}

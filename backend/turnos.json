@@ -1,0 +1,29 @@
+[
+  {
+    "id": "1",
+    "pacienteNombre": "Juan Pérez",
+    "fecha": "2024-04-15",
+    "hora": "10:00",
+    "motivo": "Control general",
+    "estado": "Pendiente"
+  },
+  {
+    "id": "2",
+    "pacienteNombre": "María García",
+    "fecha": "2024-04-16",
+    "hora": "11:30",
+    "motivo": "Consulta dermatológica",
+    "estado": "Pendiente"
+  },
+  {
+    "id": "1778250837016",
+    "usuarioId": "1778125029141",
+    "pacienteNombre": "Brayan Yara",
+    "fecha": "2026-05-09",
+    "hora": "01:33 PM",
+    "motivo": "General",
+    "especialidad": "General",
+    "doctor": "Dr. Asignado",
+    "estado": "Pendiente"
+  }
+]

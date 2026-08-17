@@ -37,7 +37,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="68a74aa9-a714-424a-89ee-01848c6fa5c0" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/02-week/01-sesión/ADR-001-arquitectura.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/02-week/01-sesión/backlog-mvp1.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/02-week/01-sesión/mapa-contexto.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

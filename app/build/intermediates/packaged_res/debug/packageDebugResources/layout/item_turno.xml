@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="20dp"
+    android:layout_marginVertical="8dp"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="2dp"
+    android:stateListAnimator="@animator/scale_button_press"
+    android:clickable="true"
+    android:focusable="true"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/outline">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Left Accent and Date Column -->
+        <LinearLayout
+            android:id="@+id/leftColumn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <View
+                android:id="@+id/indicatorSpecialty"
+                android:layout_width="4dp"
+                android:layout_height="20dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/bg_circle_soft"
+                android:backgroundTint="@color/primary" />
+
+            <!-- Date Badge -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/dateContainer"
+                android:layout_width="54dp"
+                android:layout_height="66dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/primary_container">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/tvItemMesCorta"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/primary"
+                        android:textSize="11sp"
+                        android:fontFamily="sans-serif-black"
+                        android:textAllCaps="true"
+                        tools:text="JUN" />
+                    <TextView
+                        android:id="@+id/tvItemDiaMes"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/primary"
+                        android:textSize="22sp"
+                        android:fontFamily="sans-serif-black"
+                        android:includeFontPadding="false"
+                        tools:text="24" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <!-- Main Info Content -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toStartOf="@id/btnDeleteItem"
+            app:layout_constraintStart_toEndOf="@id/leftColumn"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/ivSpecialtyIcon"
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:layout_marginEnd="6dp"
+                    android:src="@drawable/ic_specialty_cardiology"
+                    app:tint="@color/primary" />
+
+                <TextView
+                    android:id="@+id/tvItemEspecialidad"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:textColor="@color/primary"
+                    android:textSize="13sp"
+                    android:letterSpacing="0.05"
+                    android:textAllCaps="true"
+                    tools:text="Cardiología" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvItemNombre"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="sans-serif-black"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                tools:text="Brahiam Yara" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:src="@drawable/ic_nav_profile"
+                    app:tint="@color/text_tertiary" />
+
+                <TextView
+                    android:id="@+id/tvItemDoctor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+                    tools:text="Dr. Mateo Martínez" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvItemMotivo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif"
+                android:maxLines="1"
+                android:textColor="@color/text_tertiary"
+                android:textSize="12sp"
+                android:textStyle="italic"
+                tools:text="Consulta general" />
+
+            <!-- Bottom Row: Time and Status -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvItemHora"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_glass_pill"
+                    android:backgroundTint="@color/primary_container"
+                    android:fontFamily="sans-serif-black"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:textColor="@color/primary"
+                    android:textSize="12sp"
+                    tools:text="10:30 AM" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/tvItemStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_glass_pill"
+                    android:fontFamily="sans-serif-black"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:textSize="10sp"
+                    android:maxLines="1"
+                    android:ellipsize="none"
+                    android:includeFontPadding="false"
+                    tools:text="PENDIENTE" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btnDeleteItem"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_circle_soft"
+            android:contentDescription="@string/btn_delete_confirm"
+            android:padding="10dp"
+            android:src="@drawable/ic_delete"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/text_tertiary" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

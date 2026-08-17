@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_app_modern">
+
+    <View
+        android:id="@+id/headerBg"
+        android:layout_width="match_parent"
+        android:layout_height="340dp"
+        android:background="@drawable/bg_main_gradient" />
+
+    <View
+        android:id="@+id/headerCurve"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="@drawable/bg_header_curved"
+        app:layout_anchor="@id/headerBg"
+        app:layout_anchorGravity="bottom" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingHorizontal="32dp"
+            android:paddingBottom="32dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_marginTop="32dp"
+                app:cardCornerRadius="40dp"
+                app:cardElevation="16dp"
+                app:strokeWidth="4dp"
+                app:strokeColor="@color/white">
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="28dp"
+                    android:src="@drawable/ic_medical_logo"
+                    android:background="@drawable/bg_main_gradient"
+                    app:tint="@color/white" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="SaludActiva"
+                android:textColor="@color/white"
+                android:textSize="28sp"
+                android:fontFamily="sans-serif-black"
+                android:letterSpacing="-0.03"
+                android:textAlignment="center" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                android:text="Bienvenido de nuevo"
+                android:textColor="#E6FFFFFF"
+                android:textSize="17sp"
+                android:fontFamily="sans-serif-medium"
+                android:textAlignment="center" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="32dp"
+                app:cardElevation="10dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/outline">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="32dp"
+                    android:gravity="center_horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="28dp"
+                        android:text="@string/label_patient_access"
+                        android:textColor="@color/primary"
+                        android:textSize="12sp"
+                        android:fontFamily="sans-serif-black"
+                        android:letterSpacing="0.15"
+                        android:textAlignment="center" />
+
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilEmail"
+                        style="@style/Widget.App.TextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Correo Electrónico"
+                        app:startIconDrawable="@android:drawable/ic_dialog_email"
+                        app:startIconTint="@color/primary"
+                        app:boxCornerRadiusTopStart="16dp"
+                        app:boxCornerRadiusTopEnd="16dp"
+                        app:boxCornerRadiusBottomStart="16dp"
+                        app:boxCornerRadiusBottomEnd="16dp">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etEmail"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingVertical="14dp"
+                            android:inputType="textEmailAddress"
+                            android:textSize="15sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilPassword"
+                        style="@style/Widget.App.TextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:hint="Contraseña"
+                        app:passwordToggleEnabled="true"
+                        app:passwordToggleTint="@color/primary"
+                        app:startIconDrawable="@android:drawable/ic_lock_idle_lock"
+                        app:startIconTint="@color/primary"
+                        app:boxCornerRadiusTopStart="16dp"
+                        app:boxCornerRadiusTopEnd="16dp"
+                        app:boxCornerRadiusBottomStart="16dp"
+                        app:boxCornerRadiusBottomEnd="16dp">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etPassword"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingVertical="14dp"
+                            android:inputType="textPassword"
+                            android:textSize="15sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnLogin"
+                        android:layout_width="match_parent"
+                        android:layout_height="64dp"
+                        android:layout_marginTop="32dp"
+                        android:text="INICIAR SESIÓN"
+                        android:fontFamily="sans-serif-black"
+                        android:textSize="16sp"
+                        android:letterSpacing="0.08"
+                        android:textColor="@color/white"
+                        app:cornerRadius="24dp"
+                        app:elevation="4dp"
+                        android:background="@drawable/bg_button_premium"
+                        app:backgroundTint="@null" />
+
+                    <ImageButton
+                        android:id="@+id/btnBiometricLogin"
+                        android:layout_width="60dp"
+                        android:layout_height="60dp"
+                        android:layout_marginTop="20dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:padding="12dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_nav_profile"
+                        android:visibility="gone"
+                        app:tint="@color/primary"
+                        tools:visibility="visible" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/tvGoToRegister"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        android:text="@string/go_to_register"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="14sp"
+                        android:textAllCaps="false" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center"
+        android:elevation="20dp"
+        android:visibility="gone" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

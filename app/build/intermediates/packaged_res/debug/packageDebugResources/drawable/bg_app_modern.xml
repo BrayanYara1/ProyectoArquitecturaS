@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 1. Fondo con Gradiente Base Premium (Muy suave) -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="315"
+                android:startColor="#F8FAFC"
+                android:centerColor="#FFFFFF"
+                android:endColor="#F1F5F9"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <!-- 2. Forma Decorativa Superior (Aura sutil) -->
+    <item android:top="-200dp" android:right="-150dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="400dp"
+                android:startColor="#0A0056B3"
+                android:endColor="#000056B3" />
+            <size android:width="600dp" android:height="600dp" />
+        </shape>
+    </item>
+
+    <!-- 3. Forma Decorativa Inferior (Aura sutil) -->
+    <item android:bottom="-200dp" android:left="-150dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="400dp"
+                android:startColor="#0A6F42C1"
+                android:endColor="#006F42C1" />
+            <size android:width="550dp" android:height="550dp" />
+        </shape>
+    </item>
+</layer-list>

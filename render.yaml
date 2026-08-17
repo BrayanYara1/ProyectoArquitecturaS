@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: saludactiva-backend
+    env: docker
+    repo: https://github.com/TU_USUARIO/TU_REPOSITORIO # Render lo detectará automáticamente si lo vinculas
+    rootDir: backend
+    plan: free
+    region: oregon
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3000"
+      - key: MONGODB_URI
+        sync: false # Lo configurarás manualmente en el Dashboard de Render por seguridad
+      - key: JWT_SECRET
+        sync: false # Lo configurarás manualmente en el Dashboard de Render por seguridad
+    autoDeploy: true

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "742799682575",
+    "project_id": "saludactiva-a7f7d",
+    "storage_bucket": "saludactiva-a7f7d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:742799682575:android:6d29aa55bda6b3e8ac477a",
+        "android_client_info": {
+          "package_name": "com.example.gestionturnosapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCzKjutvly7KBpAEF9vn9yeQxUV_Nn1lEQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

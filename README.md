@@ -1,42 +1,51 @@
-# Distributed Systems - 2026-B - Group 2
+# Salud Activa - Gestión de Bienestar Médico
 
-Class repository - Corporacion Universitaria del Huila (CORHUILA).
+## Descripción
+**Salud Activa** es una plataforma profesional para la gestión de turnos y bienestar médico. El proyecto incluye una aplicación móvil Android nativa moderna y un backend escalable de alto rendimiento desplegado en la nube de AWS.
 
-| | |
-| --- | --- |
-| **Course** | Distributed Systems (cod. 82739) |
-| **Group** | 2 |
-| **Room** | C4-409 [Sala Informatica] - Prado Alto |
-| **Schedule** | Lunes 8:40-10:20 a.m. y Jueves 7:50-9:30 a.m. |
-| **Term** | 2026-B |
+## Arquitectura del Proyecto
+El proyecto sigue principios de **Clean Architecture** y **Clean Code**:
 
-## Structure
+1.  **App Android (`/app`):** 
+    - **MVVM:** Separación clara entre la lógica de negocio (ViewModels) y la interfaz (Fragments).
+    - **Repository Pattern:** Centralización del acceso a datos (API y Caché Offline).
+    - **Data Binding / View Binding:** Interfaz reactiva y limpia.
+    - Retrofit + OkHttp para la comunicación con el backend (v2.11.0).
+    - Kotlin Coroutines para operaciones asíncronas fluidas.
+    - Material Design 3 para una experiencia de usuario profesional y accesible.
 
-Each `NN-week/` contains:
+2.  **Backend (`/backend`):**
+    - Node.js + Express.
+    - MongoDB Atlas como base de datos de documentos.
+    - Autenticación segura mediante JSON Web Tokens (JWT).
+    - Despliegue optimizado mediante Docker.
 
-```
-NN-week/
-|-- 01-session/   # instructor in-class material (Session 1 - weekly)
-|-- 02-session/   # instructor in-class material (Session 2 - planning)
-\-- hu-status/    # YOUR weekly individual delivery (graded automatically)
-```
+3.  **Infraestructura (`/terraform_aws`):**
+    - Infraestructura como Código (IaC) usando Terraform.
+    - Despliegue en AWS ECS Fargate (Serverless Containers).
+    - Base de Datos Relacional RDS (PostgreSQL).
+    - Load Balancer (ALB) para distribución de tráfico y alta disponibilidad global.
 
-Do not delete the `01-session` / `02-session` folders: the instructor pushes in-class
-material there, and keeping them stable avoids conflicts when you update your fork.
+## Containerización
+El backend está completamente containerizado para asegurar la paridad entre entornos.
+- **Dockerfile:** Utiliza una construcción multi-etapa basada en Node-Alpine para minimizar el tamaño de la imagen.
 
-## Weekly individual delivery
-Fill `NN-week/hu-status/README.md` in your fork (keep the exact structure - it is parsed
-automatically). Create your profile repo `username/username` with a CONFIG block:
+## Ejecución Local
 
-```
-<!-- CONFIG
-FULL_NAME: Your Full Name
-GITHUB_USER: your-github-user
--->
-```
+### Backend
+1. Entra a la carpeta `backend/`.
+2. Instala las dependencias: `npm install`.
+3. Crea un archivo `.env` con las variables necesarias.
+4. Ejecuta: `npm start`.
 
-## Git workflow (per environment)
-develop -> hu-xxx-dev -> PR to develop; qa -> hu-xxx-qa -> PR to qa; main -> hu-xxx-main -> PR to main.
-Conventional Commits: `type(scope): summary`.
+### Android
+1. Abre el proyecto en Android Studio.
+2. Sincroniza Gradle.
+3. El `BASE_URL` apunta por defecto a la nube pública de Salud Activa.
+4. Ejecuta la app en un emulador o dispositivo físico.
 
-Learning material (OVAs): https://code-corhuila.github.io/ova-web/2026-B/distribuidos/
+## Infraestructura en AWS
+Para desplegar la infraestructura:
+1. Ve a `terraform_aws/`.
+2. Ejecuta `terraform init`.
+3. Ejecuta `terraform apply`.

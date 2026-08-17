@@ -1,0 +1,5 @@
+mongodb_uri = "tu_mongodb_uri_aqui"
+jwt_secret  = "tu_jwt_secret_aqui"
+db_password = "tu_db_password_aqui"
+email_user  = "tu_gmail@gmail.com"
+email_password = "tu_password_de_aplicacion_aqui"

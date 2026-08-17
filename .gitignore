@@ -1,2 +1,38 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
 node_modules/
-package-lock.json
+.idea/
+build/
+*.rar
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+*.tfvars
+
+# Backend (Ignorar para mejorar rendimiento en Android Studio)
+backend/node_modules/
+backend/.env
+node_modules/
+
+# Binarios de Android
+*.apk
+*.ap_
+*.dex
+*.dm
+*.prof

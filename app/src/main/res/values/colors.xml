@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Paleta Profesional de Alto Contraste -->
+    <color name="primary">#0056B3</color> <!-- Azul Médico Clásico -->
+    <color name="primary_variant">#003D7A</color>
+    <color name="on_primary">#FFFFFF</color>
+
+    <color name="accent">#DC3545</color> <!-- Rojo Alerta Claro -->
+    <color name="secondary">#6F42C1</color> <!-- Púrpura Discreto -->
+    <color name="on_secondary">#FFFFFF</color>
+
+    <!-- Fondos Sólidos para evitar "remontados" -->
+    <color name="background">#F8FAFC</color> <!-- Light Slate 50 -->
+    <color name="background_end">#EFF6FF</color> <!-- Blue 50 -->
+    <color name="surface">#FFFFFF</color>
+    <color name="on_background">#212529</color>
+    <color name="on_surface">#212529</color>
+
+    <!-- Estados -->
+    <color name="success">#28A745</color>
+    <color name="warning">#FFC107</color>
+    <color name="error">#DC3545</color>
+    <color name="outline">#DEE2E6</color>
+
+    <!-- Tipografía de Alta Visibilidad -->
+    <color name="text_primary">#1A1D23</color>
+    <color name="text_secondary">#495057</color>
+    <color name="text_tertiary">#6C757D</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+
+    <!-- Contenedores -->
+    <color name="primary_container">#E7F1FF</color>
+    <color name="on_primary_container">#004085</color>
+    <color name="secondary_container">#EBE2F8</color>
+    <color name="on_secondary_container">#211044</color>
+    <color name="accent_container">#F8D7DA</color>
+    <color name="on_accent_container">#721C24</color>
+
+    <!-- Elementos UI -->
+    <color name="vibrant_blue">#007BFF</color>
+    <color name="vibrant_purple">#6F42C1</color>
+    <color name="nav_item_selected">#0056B3</color>
+    <color name="nav_item_unselected">#6C757D</color>
+
+    <!-- Paleta Premium / Glassmorphism -->
+    <color name="glass_white">#F0FFFFFF</color>
+    <color name="glass_stroke">#33FFFFFF</color>
+    <color name="surface_variant_light">#F8FAFC</color>
+
+    <!-- Health Indicators -->
+    <color name="health_blue">#0EA5E9</color>
+    <color name="health_purple">#8B5CF6</color>
+    <color name="health_green">#10B981</color>
+    <color name="health_orange">#F59E0B</color>
+
+    <!-- Shimmer -->
+    <color name="shimmer_base">#E2E8F0</color>
+    <color name="shimmer_highlight">#F1F5F9</color>
+
+    <!-- Appointment Status Colors -->
+    <color name="status_pending_bg">#FFF3CD</color>
+    <color name="status_pending_text">#856404</color>
+    <color name="status_completed_bg">#D4EDDA</color>
+    <color name="status_completed_text">#155724</color>
+    <color name="status_cancelled_bg">#F8D7DA</color>
+    <color name="status_cancelled_text">#721C24</color>
+</resources>

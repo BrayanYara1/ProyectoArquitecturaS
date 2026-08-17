@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="gcm_defaultSenderId" translatable="false">742799682575</string>
-    <string name="google_api_key" translatable="false">AIzaSyCzKjutvly7KBpAEF9vn9yeQxUV_Nn1lEQ</string>
-    <string name="google_app_id" translatable="false">1:742799682575:android:6d29aa55bda6b3e8ac477a</string>
-    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyCzKjutvly7KBpAEF9vn9yeQxUV_Nn1lEQ</string>
-    <string name="google_storage_bucket" translatable="false">saludactiva-a7f7d.firebasestorage.app</string>
-    <string name="project_id" translatable="false">saludactiva-a7f7d</string>
-</resources>

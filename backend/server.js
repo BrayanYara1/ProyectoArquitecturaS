@@ -25,14 +25,20 @@ app.use(express.json());
 // --- CONEXIÓN MONGODB ---
 if (!process.env.MONGODB_URI) {
     console.error('❌ ERROR: MONGODB_URI no definida en .env');
-    process.exit(1);
+    // No salimos del proceso para permitir que Render nos muestre logs
 }
 
+let dbStatus = 'Desconectado';
+
 mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('✅ MongoDB Atlas conectado a:', mongoose.connection.name))
+    .then(() => {
+        console.log('✅ MongoDB Atlas conectado a:', mongoose.connection.name);
+        dbStatus = 'Conectado a MongoDB Atlas';
+    })
     .catch(err => {
         console.error('❌ Error MongoDB:', err.message);
-        process.exit(1);
+        dbStatus = `Error de Conexión: ${err.message}`;
+        // IMPORTANTE: Ya no usamos process.exit(1) para que el servidor no se caiga
     });
 
 // --- IMPORTAR RUTAS ---
@@ -52,7 +58,14 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/chat', chatRoutes);
 
 // --- ROOT & LISTEN ---
-app.get('/', (req, res) => res.send('🚀 Salud Activa Backend Online (v1.2 - Modular)'));
+app.get('/', (req, res) => {
+    res.send(`
+        <h1>🚀 Salud Activa Backend Online</h1>
+        <p><b>Estado DB:</b> ${dbStatus}</p>
+        <p><b>Versión:</b> 1.2.1 (Resiliente)</p>
+        <p><b>Fecha Servidor:</b> ${new Date().toLocaleString()}</p>
+    `);
+});
 app.get('/api/status', (req, res) => res.json({ status: 'online', timestamp: new Date() }));
 
 if (require.main === module) {

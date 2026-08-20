@@ -50,8 +50,11 @@ router.post('/register', authLimiter, async (req, res) => {
         console.log(`👤 Usuario registrado: ${email}`);
         res.status(201).json({ mensaje: "OK", email: nuevoUsuario.email });
     } catch (error) {
-        console.error("Error en register:", error);
-        res.status(500).json({ mensaje: "Error en el servidor durante el registro" });
+        console.error("❌ Error en register:", error);
+        res.status(500).json({
+            mensaje: "Error en el servidor durante el registro",
+            detalle: error.message
+        });
     }
 });
 
@@ -80,8 +83,12 @@ router.post('/login', authLimiter, async (req, res) => {
             token
         });
     } catch (error) {
-        console.error("Error en login:", error);
-        res.status(500).json({ mensaje: "Error en el servidor" });
+        console.error("❌ Error en login:", error);
+        res.status(500).json({
+            mensaje: "Error interno en el servidor",
+            detalle: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 });
 
@@ -106,7 +113,11 @@ router.put('/profile', authenticateToken, async (req, res) => {
             contactoEmergencia: user.contactoEmergencia
         });
     } catch (error) {
-        res.status(500).json({ mensaje: "Error al actualizar perfil" });
+        console.error("❌ Error en update profile:", error);
+        res.status(500).json({
+            mensaje: "Error al actualizar perfil",
+            detalle: error.message
+        });
     }
 });
 
@@ -117,7 +128,11 @@ router.post('/fcm-token', authenticateToken, async (req, res) => {
         await User.findByIdAndUpdate(req.userId, { fcmToken: token });
         res.status(200).send();
     } catch (error) {
-        res.status(500).json({ mensaje: "Error FCM" });
+        console.error("❌ Error en fcm-token:", error);
+        res.status(500).json({
+            mensaje: "Error FCM",
+            detalle: error.message
+        });
     }
 });
 

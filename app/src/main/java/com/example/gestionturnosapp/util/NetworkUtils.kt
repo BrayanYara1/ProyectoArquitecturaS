@@ -15,12 +15,20 @@ class NetworkUtils @Inject constructor(private val gson: Gson) {
             if (!errorBody.isNullOrEmpty()) {
                 if (errorBody.trim().startsWith("{")) {
                     val map = gson.fromJson(errorBody, Map::class.java)
-                    (map["mensaje"] as? String) 
+                    val serverMessage = (map["mensaje"] as? String) 
                         ?: (map["message"] as? String) 
-                        ?: (map["error"] as? String) 
-                        ?: "Error $code"
+                        ?: (map["error"] as? String)
+                        ?: (map["detalle"] as? String)
+                    
+                    if (serverMessage != null) {
+                        // Si es un error 500, mostramos el mensaje del servidor + código para diagnóstico
+                        if (code >= 500) "Servidor ($code): $serverMessage" else serverMessage
+                    } else {
+                        "Error $code"
+                    }
                 } else {
-                    errorBody.take(100).ifEmpty { response.message().ifEmpty { "Error $code" } }
+                    val plainError = errorBody.take(100).ifEmpty { response.message() }
+                    if (code >= 500) "Servidor ($code): $plainError" else plainError
                 }
             } else {
                 "Error $code: ${response.message()}"

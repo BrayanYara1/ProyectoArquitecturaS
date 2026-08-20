@@ -53,8 +53,13 @@ app.use('/api/chat', chatRoutes);
 
 // --- ROOT & LISTEN ---
 app.get('/', (req, res) => res.send('🚀 Salud Activa Backend Online (v1.2 - Modular)'));
+app.get('/api/status', (req, res) => res.json({ status: 'online', timestamp: new Date() }));
 
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
-    console.log(`📡 Rutas cargadas: Auth, Turnos, Medicamentos, Estudios, Admin`);
-});
+if (require.main === module) {
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
+        console.log(`📡 Rutas cargadas: Auth, Turnos, Medicamentos, Estudios, Admin`);
+    });
+}
+
+module.exports = app;

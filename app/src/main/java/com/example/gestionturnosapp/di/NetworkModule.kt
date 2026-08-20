@@ -45,7 +45,7 @@ object NetworkModule {
 
                 // REINTENTO AUTOMÁTICO PARA ERRORES DE GATEWAY O SOBRECARGA (Render)
                 while (!response.isSuccessful && 
-                    (response.code == 502 || response.code == 503 || response.code == 504) && 
+                    (response.code == 500 || response.code == 502 || response.code == 503 || response.code == 504) && 
                     tryCount < maxLimit) {
                     
                     android.util.Log.w("NetworkRetry", "Reintentando... (${tryCount + 1}) por código: ${response.code}")

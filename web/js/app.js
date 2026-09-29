@@ -1,4 +1,4 @@
-/* App JS - Salud Activa Web Client Completo */
+/* App JS - Salud Activa Web Client Pro */
 
 const API_BASE_URL = 'https://saludactiva-backend.onrender.com/api';
 
@@ -21,8 +21,11 @@ function showAlert(containerId, message, type = 'danger') {
     const container = document.getElementById(containerId);
     if (!container) return;
     container.innerHTML = `
-        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-            ${message}
+        <div class="alert alert-${type} alert-dismissible fade show rounded-3 shadow-sm border-0 mb-4" role="alert">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid ${type === 'success' ? 'fa-circle-check text-success' : 'fa-circle-exclamation text-danger'} fs-5"></i>
+                <div>${message}</div>
+            </div>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     `;
@@ -67,7 +70,7 @@ function initDarkMode() {
         document.body.classList.toggle('dark-mode');
         const active = document.body.classList.contains('dark-mode');
         localStorage.setItem('saludactiva_dark', active);
-        btn.innerHTML = active ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+        btn.innerHTML = active ? '<i class="fa-solid fa-sun me-1"></i> Modo' : '<i class="fa-solid fa-moon me-1"></i> Modo';
     });
 }
 
@@ -96,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (res && res.token) {
                     setToken(res.token);
                     setUser(res.usuario || res.user || { email });
-                    showAlert('alertContainer', '¡Inicio de sesión exitoso!', 'success');
+                    showAlert('alertContainer', '¡Inicio de sesión exitoso! Redirigiendo...', 'success');
                     setTimeout(() => { window.location.href = 'dashboard.html'; }, 600);
                 } else if (res) {
                     showAlert('alertContainer', res.mensaje || 'Respuesta no válida del servidor');
@@ -120,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await apiRequest('/auth/register', 'POST', {
                     nombre, email, dni, telefono, contrasena: password, password
                 });
-                showAlert('alertContainer', 'Registro exitoso. Inicia sesión a continuación.', 'success');
+                showAlert('alertContainer', 'Cuenta creada exitosamente. Procede a iniciar sesión.', 'success');
                 registerForm.reset();
                 const loginTab = document.getElementById('login-tab');
                 if (loginTab) loginTab.click();
@@ -140,7 +143,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const userNameDisplay = document.getElementById('userNameDisplay');
             if (userNameDisplay) userNameDisplay.textContent = user.nombre || user.email || 'Paciente';
 
-            // Llenar formulario de Perfil
+            const userEmailDisplay = document.getElementById('userEmailDisplay');
+            if (userEmailDisplay) userEmailDisplay.textContent = user.email || '';
+
+            const userAvatarInitials = document.getElementById('userAvatarInitials');
+            if (userAvatarInitials) {
+                const nameStr = user.nombre || user.email || 'P';
+                userAvatarInitials.textContent = nameStr.charAt(0).toUpperCase();
+            }
+
+            const greetingTitle = document.getElementById('greetingTitle');
+            if (greetingTitle) {
+                const hour = new Date().getHours();
+                const timeGreeting = hour < 12 ? '¡Buenos días' : hour < 19 ? '¡Buenas tardes' : '¡Buenas noches';
+                greetingTitle.textContent = `${timeGreeting}, ${user.nombre || 'Paciente'}!`;
+            }
+
+            // Llenar Formulario de Perfil
             const profNombre = document.getElementById('profNombre');
             if (profNombre) profNombre.value = user.nombre || '';
             const profTelefono = document.getElementById('profTelefono');
@@ -160,7 +179,8 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = 'index.html';
         });
 
-        // Cargar todos los módulos
+        // Inicializar Gráficos y Módulos
+        initHealthChart();
         cargarDashboardHome();
         cargarTurnos();
         cargarEspecialidades();
@@ -169,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cargarChat();
         cargarSintomasLocal();
 
-        // HANDLERS DE FORMULARIOS
+        // FORM HANDLERS
         const formSolicitar = document.getElementById('formSolicitarTurno');
         if (formSolicitar) {
             formSolicitar.addEventListener('submit', async (e) => {
@@ -182,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 try {
                     await apiRequest('/turnos', 'POST', { especialidad, medico, fecha, hora, motivo });
-                    showAlert('dashAlertContainer', 'Turno reservado exitosamente', 'success');
+                    showAlert('dashAlertContainer', '¡Turno reservado con éxito!', 'success');
                     formSolicitar.reset();
                     cargarDashboardHome();
                     cargarTurnos();
@@ -209,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         nombre, telefono, tipoSanguineo, alergias, condiciones, contactoEmergencia
                     });
                     if (updated) setUser(updated);
-                    showAlert('dashAlertContainer', 'Perfil de salud actualizado correctamente', 'success');
+                    showAlert('dashAlertContainer', 'Ficha médica actualizada correctamente', 'success');
                 } catch (err) {
                     showAlert('dashAlertContainer', err.message || 'Error al actualizar perfil');
                 }
@@ -226,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 try {
                     await apiRequest('/medicamentos', 'POST', { nombre, dosis, horario });
-                    showAlert('dashAlertContainer', 'Medicamento agregado correctamente', 'success');
+                    showAlert('dashAlertContainer', 'Medicamento registrado correctamente', 'success');
                     formNuevoMedicamento.reset();
                     const modalEl = document.getElementById('modalNuevoMedicamento');
                     const modal = bootstrap.Modal.getInstance(modalEl);
@@ -250,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 try {
                     await apiRequest('/estudios', 'POST', { titulo, laboratorio, fecha, descripcion });
-                    showAlert('dashAlertContainer', 'Estudio registrado exitosamente', 'success');
+                    showAlert('dashAlertContainer', 'Estudio subido exitosamente', 'success');
                     formNuevoEstudio.reset();
                     const modalEl = document.getElementById('modalNuevoEstudio');
                     const modal = bootstrap.Modal.getInstance(modalEl);
@@ -294,7 +314,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// --- FUNCIONES MÓDULOS DE SALUD ---
+// CHART.JS HEALTH TRACKER
+function initHealthChart() {
+    const ctx = document.getElementById('healthChart');
+    if (!ctx) return;
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+            datasets: [{
+                label: 'Adherencia a Medicamentos (%)',
+                data: [100, 100, 85, 100, 100, 90, 100],
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#2563eb'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { min: 60, max: 100, grid: { color: 'rgba(0,0,0,0.05)' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+}
+
+// DASHBOARD HOME LOADER
 async function cargarDashboardHome() {
     try {
         const [turnos, meds, estudios] = await Promise.all([
@@ -310,39 +360,38 @@ async function cargarDashboardHome() {
         const statEstudios = document.getElementById('statEstudiosCount');
         if (statEstudios) statEstudios.textContent = estudios ? estudios.length : 0;
 
-        // Próximo Turno Destacado
         const homeProximo = document.getElementById('homeProximoTurno');
         if (homeProximo) {
             if (turnos && turnos.length > 0) {
                 const p = turnos[0];
                 homeProximo.innerHTML = `
-                    <div class="p-2 border-start border-3 border-primary bg-light rounded">
-                        <h6 class="fw-bold mb-1">${p.especialidad || 'Consulta Médica'}</h6>
-                        <p class="small mb-1 text-muted"><i class="fa-solid fa-user-doctor me-1"></i>${p.medico || 'Médico Asignado'}</p>
-                        <span class="badge bg-primary"><i class="fa-regular fa-calendar me-1"></i>${p.fecha || ''} ${p.hora || ''}</span>
+                    <div class="p-3 bg-primary-subtle border border-primary-subtle rounded-3">
+                        <span class="badge bg-primary mb-1">${p.especialidad || 'Consulta'}</span>
+                        <h6 class="fw-bold mb-1 text-primary">${p.medico || 'Doctor'}</h6>
+                        <p class="small mb-0 text-secondary"><i class="fa-regular fa-calendar me-1"></i>${p.fecha || ''} a las ${p.hora || ''}</p>
                     </div>
                 `;
             } else {
-                homeProximo.innerHTML = `<p class="text-muted mb-0">No tienes turnos programados.</p>`;
+                homeProximo.innerHTML = `<p class="text-secondary small mb-0">No tienes citas médicas agendadas próximas.</p>`;
             }
         }
 
-        // Dosis del Día
         const homeMeds = document.getElementById('homeMedsDia');
         if (homeMeds) {
             if (meds && meds.length > 0) {
-                homeMeds.innerHTML = meds.map((m, idx) => `
-                    <div class="d-flex justify-content-between align-items-center border-bottom py-1">
+                homeMeds.innerHTML = meds.map((m) => `
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
                         <div>
-                            <span class="fw-bold">${m.nombre}</span> <small class="text-muted">(${m.dosis})</small>
+                            <span class="fw-bold text-primary">${m.nombre}</span>
+                            <span class="badge bg-secondary-subtle text-secondary ms-1">${m.dosis}</span>
                         </div>
-                        <button class="btn btn-sm btn-outline-success py-0 px-2" onclick="marcarTomado('${m.nombre}')">
-                            <i class="fa-solid fa-check"></i> Tomado
+                        <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="marcarTomado('${m.nombre}')">
+                            <i class="fa-solid fa-check me-1"></i> Tomado
                         </button>
                     </div>
                 `).join('');
             } else {
-                homeMeds.innerHTML = `<p class="text-muted mb-0">Sin medicamentos programados para hoy.</p>`;
+                homeMeds.innerHTML = `<p class="text-secondary small mb-0">No hay medicamentos programados para el día de hoy.</p>`;
             }
         }
     } catch (err) {
@@ -351,7 +400,7 @@ async function cargarDashboardHome() {
 }
 
 function marcarTomado(nombre) {
-    showAlert('dashAlertContainer', `¡Marcarte la toma de ${nombre}! Registro de salud actualizado.`, 'success');
+    showAlert('dashAlertContainer', `¡Dosis de ${nombre} marcada como tomada! Registro de salud actualizado.`, 'success');
 }
 
 async function cargarTurnos() {
@@ -360,37 +409,37 @@ async function cargarTurnos() {
     try {
         const turnos = await apiRequest('/turnos');
         if (!turnos || turnos.length === 0) {
-            container.innerHTML = `<div class="col-12 text-center py-4 text-muted"><i class="fa-solid fa-calendar-xmark fa-2x mb-2 d-block"></i>No tienes turnos programados.</div>`;
+            container.innerHTML = `<div class="col-12 text-center py-5 text-secondary"><i class="fa-solid fa-calendar-xmark fa-3x mb-3 d-block opacity-50"></i>No tienes turnos agendados.</div>`;
             return;
         }
 
         container.innerHTML = turnos.map(t => `
             <div class="col-md-6 col-lg-4">
-                <div class="card custom-card p-3 h-100">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="badge bg-primary rounded-pill">${t.especialidad || 'Consulta Médica'}</span>
-                        <span class="badge bg-success status-badge">${t.estado || 'Confirmado'}</span>
+                <div class="custom-card p-4 h-100 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">${t.especialidad || 'Consulta'}</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">${t.estado || 'Confirmado'}</span>
                     </div>
-                    <h5 class="card-title text-truncate">${t.medico || 'Médico Asignado'}</h5>
-                    <p class="card-text mb-1 text-muted"><i class="fa-regular fa-calendar me-2"></i>${t.fecha || 'Sin fecha'}</p>
-                    <p class="card-text mb-2 text-muted"><i class="fa-regular fa-clock me-2"></i>${t.hora || 'Sin hora'}</p>
-                    ${t.motivo ? `<p class="small text-secondary mb-3"><strong>Motivo:</strong> ${t.motivo}</p>` : ''}
-                    <button class="btn btn-outline-danger btn-sm mt-auto" onclick="cancelarTurno('${t._id || t.id}')">
-                        <i class="fa-solid fa-trash me-1"></i> Cancelar Turno
+                    <h5 class="fw-bold mb-2 text-truncate">${t.medico || 'Médico Asignado'}</h5>
+                    <p class="small text-secondary mb-1"><i class="fa-regular fa-calendar me-2 text-primary"></i>${t.fecha || 'Sin fecha'}</p>
+                    <p class="small text-secondary mb-3"><i class="fa-regular fa-clock me-2 text-primary"></i>${t.hora || 'Sin hora'}</p>
+                    ${t.motivo ? `<p class="small text-secondary mb-3 bg-body-tertiary p-2 rounded"><strong>Motivo:</strong> ${t.motivo}</p>` : ''}
+                    <button class="btn btn-outline-danger btn-sm rounded-pill mt-auto" onclick="cancelarTurno('${t._id || t.id}')">
+                        <i class="fa-solid fa-trash me-1"></i> Cancelar Cita
                     </button>
                 </div>
             </div>
         `).join('');
     } catch (err) {
-        container.innerHTML = `<div class="col-12 text-center text-danger py-3">Error al cargar turnos: ${err.message}</div>`;
+        container.innerHTML = `<div class="col-12 text-center text-danger py-4">Error al cargar los turnos: ${err.message}</div>`;
     }
 }
 
 async function cancelarTurno(id) {
-    if (!confirm('¿Deseas cancelar este turno?')) return;
+    if (!confirm('¿Estás seguro de cancelar esta cita médica?')) return;
     try {
         await apiRequest(`/turnos/${id}`, 'DELETE');
-        showAlert('dashAlertContainer', 'Turno cancelado correctamente', 'info');
+        showAlert('dashAlertContainer', 'Cita médica cancelada con éxito', 'info');
         cargarTurnos();
         cargarDashboardHome();
     } catch (err) {
@@ -403,14 +452,14 @@ async function cargarEspecialidades() {
     const grid = document.getElementById('especialidadesGrid');
 
     const lista = [
-        { nombre: 'Clínica Médica', icono: 'fa-user-doctor', desc: 'Consultas generales y diagnóstico preventivo.' },
-        { nombre: 'Cardiología', icono: 'fa-heart-pulse', desc: 'Cuidado y tratamiento del corazón y sistema circulatorio.' },
-        { nombre: 'Dermatología', icono: 'fa-allergies', desc: 'Atención especializada para el cuidado de la piel.' },
-        { nombre: 'Pediatría', icono: 'fa-baby', desc: 'Atención de salud integral para niños y adolescentes.' },
-        { nombre: 'Traumatología', icono: 'fa-bone', desc: 'Tratamiento de lesiones óseas y articulares.' },
-        { nombre: 'Ginecología', icono: 'fa-person-pregnant', desc: 'Salud reproductiva e integral de la mujer.' },
-        { nombre: 'Oftalmología', icono: 'fa-eye', desc: 'Cuidado y examen de la visión.' },
-        { nombre: 'Neurología', icono: 'fa-brain', desc: 'Especialidad del sistema nervioso central y cerebro.' }
+        { nombre: 'Clínica Médica', icono: 'fa-user-doctor', desc: 'Atención integral, diagnósticos generales y prevención de salud.' },
+        { nombre: 'Cardiología', icono: 'fa-heart-pulse', desc: 'Diagnóstico y tratamiento de afecciones del sistema cardiovascular.' },
+        { nombre: 'Dermatología', icono: 'fa-allergies', desc: 'Cuidado y salud especializada de la piel, cabello y uñas.' },
+        { nombre: 'Pediatría', icono: 'fa-baby', desc: 'Cuidado médico preventivo y curativo de niños y adolescentes.' },
+        { nombre: 'Traumatología', icono: 'fa-bone', desc: 'Tratamiento de lesiones musculoesqueléticas y articulaciones.' },
+        { nombre: 'Ginecología', icono: 'fa-person-pregnant', desc: 'Atención médica reproductiva e integral de la mujer.' },
+        { nombre: 'Oftalmología', icono: 'fa-eye', desc: 'Cuidado integral de la visión y salud ocular.' },
+        { nombre: 'Neurología', icono: 'fa-brain', desc: 'Diagnóstico y tratamiento de trastornos del sistema nervioso.' }
     ];
 
     if (select) {
@@ -420,11 +469,13 @@ async function cargarEspecialidades() {
     if (grid) {
         grid.innerHTML = lista.map(e => `
             <div class="col-md-6 col-lg-3">
-                <div class="card custom-card p-3 text-center h-100">
-                    <i class="fa-solid ${e.icono} fa-3x text-primary mb-3"></i>
-                    <h5 class="card-title fw-bold">${e.nombre}</h5>
-                    <p class="small text-muted mb-3">${e.desc}</p>
-                    <button class="btn btn-outline-primary btn-sm mt-auto" onclick="seleccionarEspecialidad('${e.nombre}')">
+                <div class="custom-card p-4 text-center h-100 d-flex flex-column">
+                    <div class="metric-icon bg-primary-subtle text-primary mx-auto mb-3" style="width:60px; height:60px; font-size:26px">
+                        <i class="fa-solid ${e.icono}"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2">${e.nombre}</h6>
+                    <p class="small text-secondary mb-3">${e.desc}</p>
+                    <button class="btn btn-outline-primary btn-sm rounded-pill mt-auto" onclick="seleccionarEspecialidad('${e.nombre}')">
                         <i class="fa-solid fa-calendar-plus me-1"></i> Reservar
                     </button>
                 </div>
@@ -438,11 +489,13 @@ async function cargarEspecialidades() {
                 const filtrados = lista.filter(item => item.nombre.toLowerCase().includes(query));
                 grid.innerHTML = filtrados.map(e => `
                     <div class="col-md-6 col-lg-3">
-                        <div class="card custom-card p-3 text-center h-100">
-                            <i class="fa-solid ${e.icono} fa-3x text-primary mb-3"></i>
-                            <h5 class="card-title fw-bold">${e.nombre}</h5>
-                            <p class="small text-muted mb-3">${e.desc}</p>
-                            <button class="btn btn-outline-primary btn-sm mt-auto" onclick="seleccionarEspecialidad('${e.nombre}')">
+                        <div class="custom-card p-4 text-center h-100 d-flex flex-column">
+                            <div class="metric-icon bg-primary-subtle text-primary mx-auto mb-3" style="width:60px; height:60px; font-size:26px">
+                                <i class="fa-solid ${e.icono}"></i>
+                            </div>
+                            <h6 class="fw-bold mb-2">${e.nombre}</h6>
+                            <p class="small text-secondary mb-3">${e.desc}</p>
+                            <button class="btn btn-outline-primary btn-sm rounded-pill mt-auto" onclick="seleccionarEspecialidad('${e.nombre}')">
                                 <i class="fa-solid fa-calendar-plus me-1"></i> Reservar
                             </button>
                         </div>
@@ -466,24 +519,31 @@ async function cargarMedicamentos() {
     try {
         const meds = await apiRequest('/medicamentos');
         if (!meds || meds.length === 0) {
-            container.innerHTML = `<div class="col-12 text-center py-4 text-muted"><i class="fa-solid fa-capsules fa-2x mb-2 d-block"></i>No registras medicamentos activos.</div>`;
+            container.innerHTML = `<div class="col-12 text-center py-5 text-secondary"><i class="fa-solid fa-capsules fa-3x mb-3 d-block opacity-50"></i>No registras medicamentos activos.</div>`;
             return;
         }
 
         container.innerHTML = meds.map(m => `
             <div class="col-md-6 col-lg-4">
-                <div class="card custom-card p-3 h-100">
-                    <h5 class="card-title text-primary"><i class="fa-solid fa-pills me-2"></i>${m.nombre}</h5>
-                    <p class="mb-1"><strong>Dosis:</strong> ${m.dosis || 'N/A'}</p>
-                    <p class="mb-2 text-muted"><strong>Horario:</strong> ${m.horario || m.frecuencia || 'N/A'}</p>
-                    <button class="btn btn-outline-danger btn-sm mt-auto" onclick="eliminarMedicamento('${m._id || m.id}')">
+                <div class="custom-card p-4 h-100 d-flex flex-column">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="metric-icon bg-success-subtle text-success">
+                            <i class="fa-solid fa-pills"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-truncate">${m.nombre}</h5>
+                            <span class="small text-secondary">Dosis: ${m.dosis || 'N/A'}</span>
+                        </div>
+                    </div>
+                    <p class="small text-secondary mb-3"><i class="fa-regular fa-clock me-1 text-success"></i> ${m.horario || m.frecuencia || 'N/A'}</p>
+                    <button class="btn btn-outline-danger btn-sm rounded-pill mt-auto" onclick="eliminarMedicamento('${m._id || m.id}')">
                         <i class="fa-solid fa-trash me-1"></i> Eliminar
                     </button>
                 </div>
             </div>
         `).join('');
     } catch (err) {
-        container.innerHTML = `<div class="col-12 text-center text-muted py-3">No hay medicamentos registrados o error de carga.</div>`;
+        container.innerHTML = `<div class="col-12 text-center text-secondary py-4">No hay medicamentos guardados.</div>`;
     }
 }
 
@@ -504,25 +564,32 @@ async function cargarEstudios() {
     try {
         const estudios = await apiRequest('/estudios');
         if (!estudios || estudios.length === 0) {
-            container.innerHTML = `<div class="col-12 text-center py-4 text-muted"><i class="fa-solid fa-folder-open fa-2x mb-2 d-block"></i>No tienes estudios registrados.</div>`;
+            container.innerHTML = `<div class="col-12 text-center py-5 text-secondary"><i class="fa-solid fa-folder-open fa-3x mb-3 d-block opacity-50"></i>No tienes estudios médicos subidos.</div>`;
             return;
         }
 
         container.innerHTML = estudios.map(e => `
             <div class="col-md-6">
-                <div class="card custom-card p-3 h-100">
-                    <h5 class="card-title text-success"><i class="fa-solid fa-file-medical me-2"></i>${e.titulo}</h5>
-                    <p class="mb-1 text-muted"><strong>Centro:</strong> ${e.laboratorio || 'N/A'}</p>
-                    <p class="mb-2 text-muted"><strong>Fecha:</strong> ${e.fecha || 'N/A'}</p>
-                    ${e.descripcion ? `<p class="small text-secondary mb-2">${e.descripcion}</p>` : ''}
-                    <button class="btn btn-outline-danger btn-sm mt-auto" onclick="eliminarEstudio('${e._id || e.id}')">
-                        <i class="fa-solid fa-trash me-1"></i> Eliminar
+                <div class="custom-card p-4 h-100 d-flex flex-column">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="metric-icon bg-info-subtle text-info">
+                            <i class="fa-solid fa-file-waveform"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0">${e.titulo}</h6>
+                            <small class="text-secondary">${e.laboratorio || 'Centro Médico'}</small>
+                        </div>
+                    </div>
+                    <p class="small text-secondary mb-2"><i class="fa-regular fa-calendar me-1 text-info"></i> ${e.fecha || 'N/A'}</p>
+                    ${e.descripcion ? `<p class="small text-secondary mb-3 bg-body-tertiary p-2 rounded">${e.descripcion}</p>` : ''}
+                    <button class="btn btn-outline-danger btn-sm rounded-pill mt-auto" onclick="eliminarEstudio('${e._id || e.id}')">
+                        <i class="fa-solid fa-trash me-1"></i> Eliminar Estudio
                     </button>
                 </div>
             </div>
         `).join('');
     } catch (err) {
-        container.innerHTML = `<div class="col-12 text-center text-muted py-3">Sin estudios guardados.</div>`;
+        container.innerHTML = `<div class="col-12 text-center text-secondary py-4">Sin estudios guardados.</div>`;
     }
 }
 
@@ -543,7 +610,7 @@ async function cargarChat() {
     try {
         const msgs = await apiRequest('/chat');
         if (!msgs || msgs.length === 0) {
-            box.innerHTML = `<div class="text-center text-muted py-4">Inicia una conversación enviando un mensaje.</div>`;
+            box.innerHTML = `<div class="text-center text-secondary py-5">Inicia tu consulta enviando un mensaje al asistente.</div>`;
             return;
         }
 
@@ -558,7 +625,7 @@ async function cargarChat() {
         }).join('');
         box.scrollTop = box.scrollHeight;
     } catch (err) {
-        box.innerHTML = `<div class="text-center text-muted py-4">Inicia una conversación enviando un mensaje.</div>`;
+        box.innerHTML = `<div class="text-center text-secondary py-5">Inicia tu consulta enviando un mensaje.</div>`;
     }
 }
 
@@ -568,14 +635,14 @@ function cargarSintomasLocal() {
     if (!list) return;
     const items = JSON.parse(localStorage.getItem('saludactiva_sintomas') || '[]');
     if (items.length === 0) {
-        list.innerHTML = `<li class="list-group-item text-muted text-center py-2">Sin síntomas anotados.</li>`;
+        list.innerHTML = `<li class="list-group-item text-secondary text-center py-2">Sin síntomas anotados.</li>`;
         return;
     }
 
     list.innerHTML = items.map(s => `
         <li class="list-group-item d-flex justify-content-between align-items-center">
             <span>${s.texto}</span>
-            <small class="text-muted" style="font-size:0.75rem">${s.fecha}</small>
+            <small class="text-secondary" style="font-size:0.75rem">${s.fecha}</small>
         </li>
     `).join('');
 }

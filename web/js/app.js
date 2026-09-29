@@ -15,7 +15,9 @@ function setToken(token) {
 function clearSession() {
     localStorage.removeItem('saludactiva_token');
     localStorage.removeItem('saludactiva_user');
-    window.location.href = 'index.html';
+    if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/') {
+        window.location.href = 'index.html';
+    }
 }
 
 function getUser() {
@@ -54,14 +56,20 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
 
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-        if (response.status === 401) {
+
+        // Si el token expiró en una ruta protegida (diferente de login)
+        if (response.status === 401 && !endpoint.includes('/auth/login')) {
             clearSession();
             return null;
         }
+
         const data = await response.json().catch(() => ({}));
+
         if (!response.ok) {
-            throw new Error(data.error || data.message || `Error ${response.status}`);
+            const errorMsg = data.mensaje || data.detalle || data.error || data.message || `Error ${response.status}`;
+            throw new Error(errorMsg);
         }
+
         return data;
     } catch (err) {
         console.error('API Error:', err);
@@ -87,14 +95,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const password = document.getElementById('loginPassword').value;
 
             try {
-                const res = await apiRequest('/auth/login', 'POST', { email, password });
+                // Se envían contrasena y password para asegurar compatibilidad total
+                const res = await apiRequest('/auth/login', 'POST', {
+                    email,
+                    contrasena: password,
+                    password: password
+                });
+
                 if (res && res.token) {
                     setToken(res.token);
                     setUser(res.usuario || res.user || { email });
                     showAlert('alertContainer', '¡Inicio de sesión exitoso! Redirigiendo...', 'success');
                     setTimeout(() => { window.location.href = 'dashboard.html'; }, 800);
-                } else {
-                    showAlert('alertContainer', 'Respuesta de servidor no válida');
+                } else if (res) {
+                    showAlert('alertContainer', res.mensaje || 'Respuesta de servidor no válida');
                 }
             } catch (err) {
                 showAlert('alertContainer', err.message || 'Error al iniciar sesión');
@@ -112,7 +126,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const password = document.getElementById('regPassword').value;
 
             try {
-                const res = await apiRequest('/auth/register', 'POST', { nombre, email, dni, telefono, password });
+                await apiRequest('/auth/register', 'POST', {
+                    nombre,
+                    email,
+                    dni,
+                    telefono,
+                    contrasena: password,
+                    password: password
+                });
                 showAlert('alertContainer', 'Registro exitoso. Ahora puedes iniciar sesión.', 'success');
                 registerForm.reset();
                 const loginTab = document.getElementById('login-tab');
@@ -140,6 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         btnLogout.addEventListener('click', () => {
             clearSession();
+            window.location.href = 'index.html';
         });
 
         // Cargar módulos iniciales
@@ -184,7 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     await apiRequest('/medicamentos', 'POST', { nombre, dosis, horario });
                     showAlert('dashAlertContainer', 'Medicamento registrado correctamente', 'success');
                     formNuevoMedicamento.reset();
-                    // Cerrar modal Bootstrap
                     const modalEl = document.getElementById('modalNuevoMedicamento');
                     const modal = bootstrap.Modal.getInstance(modalEl);
                     if (modal) modal.hide();
@@ -285,7 +306,6 @@ async function cancelarTurno(id) {
 async function cargarEspecialidades() {
     const select = document.getElementById('selectEspecialidad');
     if (!select) return;
-    // Lista por defecto de especialidades médicas
     const especialidades = ['Clínica Médica', 'Cardiología', 'Dermatología', 'Pediatría', 'Traumatología', 'Ginecología', 'Oftalmología', 'Neurología'];
     select.innerHTML = especialidades.map(e => `<option value="${e}">${e}</option>`).join('');
 }

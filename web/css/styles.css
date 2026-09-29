@@ -1,0 +1,124 @@
+/* Estilos Salud Activa Web */
+:root {
+    --primary-color: #0d6efd;
+    --primary-hover: #0b5ed7;
+    --secondary-color: #0dcaf0;
+    --dark-bg: #121824;
+    --card-bg: #ffffff;
+    --border-radius: 12px;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: #f4f7f6;
+    color: #2b2d42;
+    min-height: 100vh;
+}
+
+/* Auth Page */
+.auth-container {
+    max-width: 450px;
+    margin: 80px auto;
+    padding: 30px;
+    background: #ffffff;
+    border-radius: var(--border-radius);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.brand-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.brand-header h2 {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+/* Sidebar & Navigation */
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.4rem;
+}
+
+.nav-pills .nav-link {
+    color: #495057;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 10px 16px;
+    transition: all 0.2s ease;
+}
+
+.nav-pills .nav-link.active {
+    background-color: var(--primary-color);
+    color: #ffffff;
+}
+
+.nav-pills .nav-link:hover:not(.active) {
+    background-color: #e9ecef;
+}
+
+/* Cards & Containers */
+.custom-card {
+    border: none;
+    border-radius: var(--border-radius);
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.custom-card:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.status-badge {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    border-radius: 20px;
+}
+
+/* Chat Container */
+.chat-box {
+    height: 400px;
+    overflow-y: auto;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.chat-bubble {
+    max-width: 75%;
+    padding: 10px 15px;
+    border-radius: 16px;
+    margin-bottom: 12px;
+    word-wrap: break-word;
+}
+
+.chat-bubble.sent {
+    background-color: var(--primary-color);
+    color: white;
+    margin-left: auto;
+    border-bottom-right-radius: 4px;
+}
+
+.chat-bubble.received {
+    background-color: #e9ecef;
+    color: #212529;
+    margin-right: auto;
+    border-bottom-left-radius: 4px;
+}
+
+/* Spinner Loader Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}

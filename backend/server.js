@@ -5,6 +5,8 @@ const mongoose = require('mongoose');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
+const path = require('path');
+
 // --- APP CONFIG ---
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -17,10 +19,14 @@ const generalLimiter = rateLimit({
     legacyHeaders: false,
 });
 
-app.use(helmet());
+app.use(helmet({ contentSecurityPolicy: false }));
 app.use(generalLimiter);
 app.use(cors());
 app.use(express.json());
+
+// Archivos estáticos del cliente Web (si la carpeta web existe)
+app.use(express.static(path.join(__dirname, '../web')));
+app.use(express.static(path.join(__dirname, 'web')));
 
 // --- CONEXIÓN MONGODB ---
 if (!process.env.MONGODB_URI) {
@@ -42,7 +48,7 @@ mongoose.connect(process.env.MONGODB_URI)
     });
 
 // --- IMPORTAR RUTAS ---
-const authRoutes = require('./routes/auth');
+const authRoutes = require('./src/infrastructure/adapters/http/express/AuthRoutes');
 const turnoRoutes = require('./routes/turnos');
 const medicamentoRoutes = require('./routes/medicamentos');
 const estudioRoutes = require('./routes/estudios');

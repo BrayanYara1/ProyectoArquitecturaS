@@ -1,7 +1,7 @@
-# Documentation Rules
+# Documentation Rules & Architectural Norms
 
-> These rules determine how documentation is written, organized, and maintained in this project.
-> Documentation that does not follow these rules may be rejected in code review.
+> These rules determine how documentation, repositories, microservices, and user interfaces are written, organized, and named in this project.
+> Non-compliance blocks PR merges and code reviews.
 
 ---
 
@@ -45,18 +45,6 @@ Este documento define la metodología de trabajo para el desarrollo de la App An
 | **8** | V. Large | Complete Chat system. **(MUST be split)**. |
 | **13** | Epic | Infrastructure migration or app redesign. **(MUST be split)**. |
 
-### Estimation Rules
-- **Disagreement:** If disagreement is 2+ levels (e.g., 3 vs 8), discuss technical debt and logic before re-voting.
-- **Decomposition:** Stories with 8+ points must be split into sub-tasks (e.g., Backend logic vs Android UI).
-
-### Velocity History
-| Sprint | Points Completed | Notes |
-| :--- | :---: | :--- |
-| **Sprint 9** | 42 | AWS ECS Setup & basic JWT Auth. |
-| **Sprint 10** | 55 | FCM & Material 3 migration. |
-| **Sprint 11** | 48 | Room refactor & Error 500 diagnostics. |
-| **Average** | **48.3** | **Sustainable velocity for this stack.** |
-
 ---
 
 ## Definition of Ready (DoR)
@@ -81,12 +69,18 @@ Este documento define la metodología de trabajo para el desarrollo de la App An
 
 ---
 
-## Documentation & Governance Strategy
+## 4.5.4 Prohibited Forms & Architectural Naming Norms
 
-- **Language:** Code/Docs in **English**, UI/Errors in **Spanish**.
-- **Governance:** [`docs/00-governance/`](file:///C:/Users/andyb/AndroidStudioProjects/GestionTurnosApp/docs/00-governance/) (DoR, DoD, Git Rules).
-- **Control:** [`docs/15-project-control/`](file:///C:/Users/andyb/AndroidStudioProjects/GestionTurnosApp/docs/15-project-control/) (Risks, Tech Debt).
-- **Rule:** Documentation is code. If it's not up to date, the PR is rejected.
+> **Expressed Restrictions (Section 4.5.4):**
+> The following naming conventions and patterns are strictly prohibited in the project:
+
+| Prohibited Form | Reason & Rule | Compliance in Salud Activa |
+| :--- | :--- | :--- |
+| `ms-<domain>`, `svc-<domain>` | Repository prefix must be project abbreviation (`abbr`), not component type | Repositories use project abbreviation prefix (`ProyectoDistribuidos2026`, `ProyectoArquitecturaS`). |
+| Single centralized migration repository | Each database owns its own schema structure and migrations (Rule 7.2) | Migrations and database schemas are decentralized per domain service. |
+| `<domain>_schema` inside shared database | Separate schemas in a single database do not fulfill Database-per-Domain (Rule 7.1) | Each domain (`Auth`, `Turnos`, `Medicamentos`, `Estudios`, `Chat`) uses its own database instance, connection, and volume. |
+| Portals named by role or profile | UI is organized by domain or channel, not by user role | User interfaces are organized by channel: Mobile App (`app`) and Web Portal (`portal` / `web`). |
+| `<abbr>-<domain>-front` | Domain interface is named by channel: `portal` or `app` | Interfaces use channel naming (`app` for Android, `portal` / `web` for Web). |
 
 ---
 

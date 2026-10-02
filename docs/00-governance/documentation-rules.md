@@ -69,16 +69,16 @@ Este documento define la metodología de trabajo para el desarrollo de la App An
 
 ---
 
-## 4.5.4 Prohibited Forms & Architectural Naming Norms
+## 4.5.4 Prohibited Forms & Architectural Naming Norms (Conforme a Anexo J)
 
-> **Expressed Restrictions (Section 4.5.4):**
-> The following naming conventions and patterns are strictly prohibited in the project:
+> **Expressed Restrictions (Section 4.5.4 & Anexo J 2026B):**
+> The following naming conventions and patterns are strictly regulated in the project:
 
-| Prohibited Form | Reason & Rule | Compliance in Salud Activa |
+| Prohibited Form | Reason & Rule (Anexo J) | Compliance in Salud Activa |
 | :--- | :--- | :--- |
 | `ms-<domain>`, `svc-<domain>` | Repository prefix must be project abbreviation (`abbr`), not component type | Repositories use project abbreviation prefix (`ProyectoDistribuidos2026`, `ProyectoArquitecturaS`). |
 | Single centralized migration repository | Each database owns its own schema structure and migrations (Rule 7.2) | Migrations and database schemas are decentralized per domain service. |
-| `<domain>_schema` inside shared database | Separate schemas in a single database do not fulfill Database-per-Domain (Rule 7.1) | Each domain (`Auth`, `Turnos`, `Medicamentos`, `Estudios`, `Chat`) uses its own database instance, connection, and volume. |
+| Multiple DB instances per domain (Derogado en Anexo J) | **Anexo J (J.2/J.3):** Single DB engine instance per environment; each domain owns a database/schema within that instance | Single MongoDB container/instance with isolated database per domain (`SaludActiva_auth`, `SaludActiva_turnos`, etc.). |
 | Portals named by role or profile | UI is organized by domain or channel, not by user role | User interfaces are organized by channel: Mobile App (`app`) and Web Portal (`portal` / `web`). |
 | `<abbr>-<domain>-front` | Domain interface is named by channel: `portal` or `app` | Interfaces use channel naming (`app` for Android, `portal` / `web` for Web). |
 

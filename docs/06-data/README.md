@@ -5,10 +5,9 @@
 
 ## Fundamental principle in microservices
 
-> **Each microservice owns its own data.**
+> **Each microservice owns its own database, instance, and volume (Regla 7.1).**
 
-No service should access another service's database directly. If it needs data from another
-service, it requests it via API or receives it via event. This principle guarantees independence.
+No service should access another service's database directly. A shared engine with separate schemas does NOT comply with Rule 7.1. Each domain (`Auth`, `Turnos`, `Medicamentos`, `Estudios`, `Chat`) connects to its own isolated database instance (`AUTH_MONGODB_URI`, `TURNOS_MONGODB_URI`, `MEDICAMENTOS_MONGODB_URI`, `ESTUDIOS_MONGODB_URI`, `CHAT_MONGODB_URI`). For architectural details, see [ADR-004](../05-architecture/decisions/records/ADR-004-data-isolation-per-domain.md).
 
 ---
 

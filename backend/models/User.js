@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { authConnection } = require('../config/dbConnections');
 
 const UserSchema = new mongoose.Schema({
     nombre: { type: String, required: true },
@@ -15,4 +16,4 @@ const UserSchema = new mongoose.Schema({
     fechaCreacion: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('User', UserSchema);
+module.exports = authConnection.model('User', UserSchema);

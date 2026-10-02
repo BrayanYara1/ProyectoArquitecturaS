@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
+const { turnosConnection } = require('../config/dbConnections');
 
 const TurnoSchema = new mongoose.Schema({
-    usuarioId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    usuarioId: { type: String, required: true },
     pacienteNombre: { type: String, required: true },
     fecha: { type: String, required: true },
     hora: { type: String, required: true },
@@ -11,4 +12,4 @@ const TurnoSchema = new mongoose.Schema({
     estado: { type: String, default: "Pendiente" }
 });
 
-module.exports = mongoose.model('Turno', TurnoSchema);
+module.exports = turnosConnection.model('Turno', TurnoSchema);

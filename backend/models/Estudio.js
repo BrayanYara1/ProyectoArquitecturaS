@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
+const { estudiosConnection } = require('../config/dbConnections');
 
 const EstudioSchema = new mongoose.Schema({
-    usuarioId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    usuarioId: { type: String, required: true },
     titulo: { type: String, required: true },
     fecha: { type: String, required: true },
     tipo: { type: String, default: "General" },
@@ -10,4 +11,4 @@ const EstudioSchema = new mongoose.Schema({
     notas: { type: String, default: "" }
 });
 
-module.exports = mongoose.model('Estudio', EstudioSchema);
+module.exports = estudiosConnection.model('Estudio', EstudioSchema);

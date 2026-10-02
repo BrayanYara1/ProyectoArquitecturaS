@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
+const { medicamentosConnection } = require('../config/dbConnections');
 
 const MedicamentoSchema = new mongoose.Schema({
-    usuarioId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    usuarioId: { type: String, required: true },
     nombre: { type: String, required: true },
     dosis: { type: String, required: true },
     frecuencia: { type: String, required: true },
@@ -9,4 +10,4 @@ const MedicamentoSchema = new mongoose.Schema({
     notas: { type: String, default: "" }
 });
 
-module.exports = mongoose.model('Medicamento', MedicamentoSchema);
+module.exports = medicamentosConnection.model('Medicamento', MedicamentoSchema);

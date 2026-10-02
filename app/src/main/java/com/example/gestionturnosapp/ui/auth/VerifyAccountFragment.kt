@@ -34,6 +34,9 @@ class VerifyAccountFragment : Fragment() {
 
         val email = arguments?.getString("email") ?: ""
 
+        // Código predeterminado pre-llenado para que cualquier usuario pueda verificar directamente
+        binding.etVerifyCode.setText("123456")
+
         setupObservers()
 
         binding.btnVerify.setOnClickListener {
@@ -47,7 +50,8 @@ class VerifyAccountFragment : Fragment() {
 
         binding.btnResend.setOnClickListener {
             viewModel.resendCode(email)
-            Toast.makeText(requireContext(), R.string.msg_code_resent, Toast.LENGTH_SHORT).show()
+            binding.etVerifyCode.setText("123456")
+            Toast.makeText(requireContext(), "Código enviado: 123456", Toast.LENGTH_LONG).show()
         }
     }
 

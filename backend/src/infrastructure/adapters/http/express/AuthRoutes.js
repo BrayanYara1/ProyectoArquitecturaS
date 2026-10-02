@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const rateLimit = require('express-rate-limit');
-const authenticateToken = require('../../../../middleware/auth');
+const authenticateToken = require('../../../../../middleware/auth');
 
 const MongooseUserRepository = require('../../persistence/MongooseUserRepository');
 const RegisterUser = require('../../../../application/use-cases/RegisterUser');

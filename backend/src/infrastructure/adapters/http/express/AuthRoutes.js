@@ -18,16 +18,16 @@ const authController = new AuthController(registerUser, loginUser, userRepositor
 
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 100,
+    max: 10,
     message: { mensaje: "Demasiados intentos desde esta IP, por favor intenta en 15 minutos" },
     standardHeaders: true,
     legacyHeaders: false,
 });
 
-router.post('/register', authLimiter, (req, res) => authController.register(req, res));
-router.post('/login', authLimiter, (req, res) => authController.login(req, res));
-router.put('/profile', authenticateToken, (req, res) => authController.updateProfile(req, res));
-router.post('/fcm-token', authenticateToken, (req, res) => authController.updateFcmToken(req, res));
+router.post('/register', authLimiter, (req, res, next) => authController.register(req, res, next));
+router.post('/login', authLimiter, (req, res, next) => authController.login(req, res, next));
+router.put('/profile', authenticateToken, (req, res, next) => authController.updateProfile(req, res, next));
+router.post('/fcm-token', authenticateToken, (req, res, next) => authController.updateFcmToken(req, res, next));
 
 // MOCKS
 router.post('/verify', async (req, res) => res.status(200).json({ mensaje: "OK" }));

@@ -1,7 +1,12 @@
 const request = require('supertest');
-const app = require('../server');
+const app = require('../app');
+const { cerrarConexiones } = require('../config/dbConnections');
 
 describe('API Health and Status Endpoints', () => {
+  afterAll(async () => {
+    await cerrarConexiones();
+  });
+
   it('debería responder con estado 200 y el estado del servidor en /api/status', async () => {
     const res = await request(app).get('/api/status');
     expect(res.statusCode).toEqual(200);

@@ -67,10 +67,21 @@ medicamentosConnection.on('connected', () => console.log('✅ Base de Datos [Dom
 estudiosConnection.on('connected', () => console.log('✅ Base de Datos [Dominio Estudios] conectada'));
 chatConnection.on('connected', () => console.log('✅ Base de Datos [Dominio Chat] conectada'));
 
+async function cerrarConexiones() {
+    await Promise.all([
+        authConnection.close(),
+        turnosConnection.close(),
+        medicamentosConnection.close(),
+        estudiosConnection.close(),
+        chatConnection.close()
+    ]);
+}
+
 module.exports = {
     authConnection,
     turnosConnection,
     medicamentosConnection,
     estudiosConnection,
-    chatConnection
+    chatConnection,
+    cerrarConexiones
 };

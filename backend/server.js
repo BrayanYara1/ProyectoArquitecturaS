@@ -28,6 +28,9 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../web')));
 app.use(express.static(path.join(__dirname, 'web')));
 
+// Archivos subidos por usuarios (documentos de estudios médicos)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // --- CONEXIÓN MONGODB ---
 if (!process.env.MONGODB_URI) {
     console.error('❌ ERROR: MONGODB_URI no definida en .env');

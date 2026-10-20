@@ -1,18 +1,74 @@
 /* App JS - Salud Activa Web Client Pro */
 
-const API_BASE_URL = 'https://saludactiva-backend.onrender.com/api';
+// URL base de la API (definida en js/config.js)
+const API_BASE_URL = window.CONFIG && window.CONFIG.API_BASE_URL
+    ? window.CONFIG.API_BASE_URL
+    : 'https://saludactiva-backend.onrender.com/api';
 
-// Helpers de Sesión
-function getToken() { return localStorage.getItem('saludactiva_token'); }
-function setToken(token) { localStorage.setItem('saludactiva_token', token); }
-function getUser() { const u = localStorage.getItem('saludactiva_user'); return u ? JSON.parse(u) : null; }
-function setUser(user) { localStorage.setItem('saludactiva_user', JSON.stringify(user)); }
+// Helpers de Sesión (usa sessionStorage por defecto: más seguro, se borra al cerrar pestaña)
+const storage = window.getActiveStorage();
 
+function getToken() {
+    return storage.getItem(window.CONFIG.STORAGE_KEYS.TOKEN);
+}
+function setToken(token, remember = false) {
+    const target = remember ? localStorage : sessionStorage;
+    target.setItem(window.CONFIG.STORAGE_KEYS.TOKEN, token);
+    if (!remember) {
+        sessionStorage.setItem(window.CONFIG.STORAGE_KEYS.REMEMBER_ME, 'false');
+    }
+}
+function getUser() {
+    const u = storage.getItem(window.CONFIG.STORAGE_KEYS.USER);
+    return u ? JSON.parse(u) : null;
+}
+function setUser(user, remember = false) {
+    const target = remember ? localStorage : sessionStorage;
+    target.setItem(window.CONFIG.STORAGE_KEYS.USER, JSON.stringify(user));
+}
 function clearSession() {
-    localStorage.removeItem('saludactiva_token');
-    localStorage.removeItem('saludactiva_user');
+    sessionStorage.removeItem(window.CONFIG.STORAGE_KEYS.TOKEN);
+    localStorage.removeItem(window.CONFIG.STORAGE_KEYS.TOKEN);
+    sessionStorage.removeItem(window.CONFIG.STORAGE_KEYS.USER);
+    localStorage.removeItem(window.CONFIG.STORAGE_KEYS.USER);
+    sessionStorage.removeItem(window.CONFIG.STORAGE_KEYS.REMEMBER_ME);
+    localStorage.removeItem(window.CONFIG.STORAGE_KEYS.REMEMBER_ME);
     if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/') {
         window.location.href = 'index.html';
+    }
+}
+
+// Utilidades JWT (sin librerías externas)
+function parseJwt(token) {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+            atob(base64).split('').map(function (c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join('')
+        );
+        return JSON.parse(jsonPayload);
+    } catch (e) {
+        return null;
+    }
+}
+
+function isTokenExpired(token) {
+    if (!token) return true;
+    const payload = parseJwt(token);
+    if (!payload || !payload.exp) return true;
+    const now = Math.floor(Date.now() / 1000);
+    // Consideramos expirado si falta menos de TOKEN_EXPIRY_WARNING segundos
+    return payload.exp <= now + window.CONFIG.TOKEN_EXPIRY_WARNING;
+}
+
+// Verifica al cargar la página si el token ya expiró
+function enforceTokenExpiry() {
+    const token = getToken();
+    if (token && isTokenExpired(token)) {
+        clearSession();
+        showAlert('alertContainer', window.CONFIG.MESSAGES.UNAUTHORIZED, 'warning');
     }
 }
 
@@ -31,8 +87,191 @@ function showAlert(containerId, message, type = 'danger') {
     `;
 }
 
-// Fetch Interceptor
+// ============================================================================
+// Validación de formularios (login y registro)
+// ============================================================================
+
+const VALIDATION_RULES = {
+    email: {
+        required: 'El correo electrónico es obligatorio.',
+        pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+        message: 'Ingresa un correo electrónico válido (ejemplo@correo.com).'
+    },
+    password: {
+        required: 'La contraseña es obligatoria.',
+        minLength: 6,
+        pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/,
+        message: 'Mínimo 6 caracteres, al menos una mayúscula, un número y un símbolo (@$!%*?&).'
+    },
+    dni: {
+        required: 'El DNI / ID es obligatorio.',
+        pattern: /^\d{7,10}$/,
+        message: 'Ingresa un DNI válido (7 a 10 dígitos numéricos).'
+    },
+    telefono: {
+        optional: true,
+        pattern: /^\+?[\d\s\-]{7,15}$/,
+        message: 'Ingresa un teléfono válido (7 a 15 dígitos).'
+    },
+    nombre: {
+        required: 'El nombre completo es obligatorio.',
+        minLength: 3,
+        message: 'Ingresa tu nombre completo (mínimo 3 caracteres).'
+    }
+};
+
+function showFieldError(inputId, message) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    input.classList.add('is-invalid');
+    input.classList.remove('is-valid');
+
+    // Eliminar mensaje previo si existe
+    const existing = input.parentNode.querySelector('.invalid-feedback');
+    if (existing) existing.remove();
+
+    const feedback = document.createElement('div');
+    feedback.className = 'invalid-feedback d-block';
+    feedback.textContent = message;
+    input.parentNode.appendChild(feedback);
+}
+
+function clearFieldError(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    input.classList.remove('is-invalid');
+    input.classList.add('is-valid');
+
+    const existing = input.parentNode.querySelector('.invalid-feedback');
+    if (existing) existing.remove();
+}
+
+function clearAllFieldErrors(formId) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+
+    form.querySelectorAll('.is-invalid, .is-valid').forEach(el => {
+        el.classList.remove('is-invalid', 'is-valid');
+    });
+    form.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
+}
+
+function validateField(fieldName, value, rules) {
+    if (rules.required && (!value || value.trim() === '')) {
+        return rules.required;
+    }
+
+    // Si es opcional y está vacío, pasar
+    if (rules.optional && (!value || value.trim() === '')) {
+        return null;
+    }
+
+    if (rules.pattern && !rules.pattern.test(value.trim())) {
+        return rules.message;
+    }
+
+    if (rules.minLength && value.trim().length < rules.minLength) {
+        return `Mínimo ${rules.minLength} caracteres.`;
+    }
+
+    return null;
+}
+
+function validateLoginForm() {
+    clearAllFieldErrors('loginForm');
+
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+
+    let errors = 0;
+
+    const emailError = validateField('email', email, VALIDATION_RULES.email);
+    if (emailError) {
+        showFieldError('loginEmail', emailError);
+        errors++;
+    } else {
+        clearFieldError('loginEmail');
+    }
+
+    const passError = validateField('password', password, VALIDATION_RULES.password);
+    if (passError) {
+        showFieldError('loginPassword', passError);
+        errors++;
+    } else {
+        clearFieldError('loginPassword');
+    }
+
+    return errors === 0;
+}
+
+function validateRegisterForm() {
+    clearAllFieldErrors('registerForm');
+
+    const nombre = document.getElementById('regNombre').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const dni = document.getElementById('regDni').value.trim();
+    const telefono = document.getElementById('regTelefono').value.trim();
+    const password = document.getElementById('regPassword').value;
+
+    let errors = 0;
+
+    const nombreError = validateField('nombre', nombre, VALIDATION_RULES.nombre);
+    if (nombreError) {
+        showFieldError('regNombre', nombreError);
+        errors++;
+    } else {
+        clearFieldError('regNombre');
+    }
+
+    const emailError = validateField('email', email, VALIDATION_RULES.email);
+    if (emailError) {
+        showFieldError('regEmail', emailError);
+        errors++;
+    } else {
+        clearFieldError('regEmail');
+    }
+
+    const dniError = validateField('dni', dni, VALIDATION_RULES.dni);
+    if (dniError) {
+        showFieldError('regDni', dniError);
+        errors++;
+    } else {
+        clearFieldError('regDni');
+    }
+
+    const telError = validateField('telefono', telefono, VALIDATION_RULES.telefono);
+    if (telError) {
+        showFieldError('regTelefono', telError);
+        errors++;
+    } else {
+        clearFieldError('regTelefono');
+    }
+
+    const passError = validateField('password', password, VALIDATION_RULES.password);
+    if (passError) {
+        showFieldError('regPassword', passError);
+        errors++;
+    } else {
+        clearFieldError('regPassword');
+    }
+
+    return errors === 0;
+}
+
+// Fetch Interceptor con timeout y manejo de errores de red
 async function apiRequest(endpoint, method = 'GET', body = null) {
+    // Si el token ya expiró y no es un endpoint de auth, bloquear la petición
+    const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/auth/register');
+    if (!isAuthEndpoint) {
+        const token = getToken();
+        if (token && isTokenExpired(token)) {
+            clearSession();
+            throw new Error(window.CONFIG.MESSAGES.UNAUTHORIZED);
+        }
+    }
+
     const headers = { 'Content-Type': 'application/json' };
     const token = getToken();
     if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -40,8 +279,15 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
     const options = { method, headers };
     if (body) options.body = JSON.stringify(body);
 
+    // Controlador de abort para timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), window.CONFIG.REQUEST_TIMEOUT);
+    options.signal = controller.signal;
+
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+        clearTimeout(timeoutId);
+
         if (response.status === 401 && !endpoint.includes('/auth/login')) {
             clearSession();
             return null;
@@ -54,6 +300,16 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
         }
         return data;
     } catch (err) {
+        clearTimeout(timeoutId);
+
+        // Clasificar tipo de error
+        if (err.name === 'AbortError') {
+            throw new Error(window.CONFIG.MESSAGES.TIMEOUT_ERROR);
+        }
+        if (err.type === 'failed' || err.message === 'Failed to fetch') {
+            throw new Error(window.CONFIG.MESSAGES.NETWORK_ERROR);
+        }
+
         console.error('API Error:', err);
         throw err;
     }
@@ -78,22 +334,36 @@ function initDarkMode() {
 document.addEventListener('DOMContentLoaded', () => {
     initDarkMode();
 
+    // Si el token existe y no está expirado, ir directo al dashboard
+    if (getToken() && !isTokenExpired(getToken())) {
+        window.location.href = 'dashboard.html';
+        return;
+    }
+
+    // Si el token expiró, limpiarlo para permitir nuevo login
+    if (getToken() && isTokenExpired(getToken())) {
+        clearSession();
+    }
+
     const loginForm = document.getElementById('loginForm');
     const registerForm = document.getElementById('registerForm');
 
     if (loginForm) {
-        if (getToken()) { window.location.href = 'dashboard.html'; return; }
-
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            if (!validateLoginForm()) {
+                showAlert('alertContainer', 'Por favor corrige los errores en el formulario antes de continuar.', 'warning');
+                return;
+            }
+
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
 
             try {
                 const res = await apiRequest('/auth/login', 'POST', {
                     email,
-                    contrasena: password,
-                    password: password
+                    contrasena: password
                 });
 
                 if (res && res.token) {
@@ -113,6 +383,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (registerForm) {
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            if (!validateRegisterForm()) {
+                showAlert('alertContainer', 'Por favor corrige los errores en el formulario antes de continuar.', 'warning');
+                return;
+            }
+
             const nombre = document.getElementById('regNombre').value.trim();
             const email = document.getElementById('regEmail').value.trim();
             const dni = document.getElementById('regDni').value.trim();
@@ -121,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 await apiRequest('/auth/register', 'POST', {
-                    nombre, email, dni, telefono, contrasena: password, password
+                    nombre, email, dni, telefono, contrasena: password
                 });
                 showAlert('alertContainer', 'Cuenta creada exitosamente. Procede a iniciar sesión.', 'success');
                 registerForm.reset();
@@ -136,7 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DASHBOARD LOGIC ---
     const btnLogout = document.getElementById('btnLogout');
     if (btnLogout) {
-        if (!getToken()) { window.location.href = 'index.html'; return; }
+        if (!getToken() || isTokenExpired(getToken())) { window.location.href = 'index.html'; return; }
 
         const user = getUser();
         if (user) {
@@ -267,9 +543,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 const laboratorio = document.getElementById('estudioLab').value;
                 const fecha = document.getElementById('estudioFecha').value;
                 const descripcion = document.getElementById('estudioDesc').value;
+                const archivo = document.getElementById('estudioDocumento').files[0];
+
+                // Validar que título y fecha estén presentes
+                if (!titulo || !fecha) {
+                    showAlert('dashAlertContainer', 'Título y fecha son obligatorios', 'warning');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('titulo', titulo);
+                formData.append('laboratorio', laboratorio);
+                formData.append('fecha', fecha);
+                formData.append('descripcion', descripcion);
+                if (archivo) formData.append('documento', archivo);
+
+                // Deshabilitar botón mientras se sube
+                const btnSubmit = formNuevoEstudio.querySelector('button[type="submit"]');
+                const btnOriginal = btnSubmit ? btnSubmit.innerHTML : '';
+                if (btnSubmit) {
+                    btnSubmit.disabled = true;
+                    btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Subiendo...';
+                }
 
                 try {
-                    await apiRequest('/estudios', 'POST', { titulo, laboratorio, fecha, descripcion });
+                    const res = await fetch(`${API_BASE_URL}/estudios`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${getToken()}`
+                        },
+                        body: formData
+                    });
+
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                        throw new Error(data.mensaje || 'Error al guardar estudio');
+                    }
+
                     showAlert('dashAlertContainer', 'Estudio subido exitosamente', 'success');
                     formNuevoEstudio.reset();
                     const modalEl = document.getElementById('modalNuevoEstudio');
@@ -279,24 +589,59 @@ document.addEventListener('DOMContentLoaded', () => {
                     cargarDashboardHome();
                 } catch (err) {
                     showAlert('dashAlertContainer', err.message || 'Error al guardar estudio');
+                } finally {
+                    if (btnSubmit) {
+                        btnSubmit.disabled = false;
+                        btnSubmit.innerHTML = btnOriginal;
+                    }
                 }
             });
         }
 
         const formChat = document.getElementById('formChat');
         if (formChat) {
+            const inputMsg = document.getElementById('inputChatMsg');
+            const btnSend = formChat.querySelector('button[type="submit"]');
+            const box = document.getElementById('chatMessages');
+
             formChat.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const inputMsg = document.getElementById('inputChatMsg');
                 const mensaje = inputMsg.value.trim();
                 if (!mensaje) return;
 
+                // Deshabilitar input y botón mientras se envía
+                inputMsg.disabled = true;
+                if (btnSend) btnSend.disabled = true;
+
+                // Agregar mensaje del usuario inmediatamente (optimistic UI)
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                const userBubble = `
+                    <div class="chat-message sent mb-3 d-flex justify-content-end" id="temp-msg-${Date.now()}">
+                        <div class="chat-bubble sent">
+                            <div class="message-text">${mensaje}</div>
+                            <div class="message-time">${timeStr}</div>
+                        </div>
+                    </div>
+                `;
+                box.insertAdjacentHTML('beforeend', userBubble);
+                box.scrollTop = box.scrollHeight;
+                inputMsg.value = '';
+
                 try {
                     await apiRequest('/chat', 'POST', { mensaje });
-                    inputMsg.value = '';
+
+                    // Pequeña pausa para simular que el asistente "está escribiendo"
+                    await new Promise(resolve => setTimeout(resolve, 800));
+
+                    // Recargar el chat para traer la respuesta del servidor
                     cargarChat();
                 } catch (err) {
                     showAlert('dashAlertContainer', err.message || 'Error al enviar mensaje');
+                } finally {
+                    inputMsg.disabled = false;
+                    if (btnSend) btnSend.disabled = false;
+                    inputMsg.focus();
                 }
             });
         }
@@ -432,6 +777,158 @@ async function cargarTurnos() {
         `).join('');
     } catch (err) {
         container.innerHTML = `<div class="col-12 text-center text-danger py-4">Error al cargar los turnos: ${err.message}</div>`;
+    }
+}
+
+// ============================================================================
+// Exportar turnos a PDF (jsPDF)
+// ============================================================================
+async function exportarTurnosPDF() {
+    const container = document.getElementById('turnosListContainer');
+    if (!container) return;
+
+    // Verificar si hay turnos cargados en el DOM
+    const turnoCards = container.querySelectorAll('.custom-card');
+    if (!turnoCards || turnoCards.length === 0) {
+        showAlert('dashAlertContainer', 'No hay turnos para exportar.', 'warning');
+        return;
+    }
+
+    // Mostrar estado de carga
+    const btn = document.querySelector('button[onclick="exportarTurnosPDF()"]');
+    const originalBtnText = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Generando...';
+        btn.disabled = true;
+    }
+
+    try {
+        // Obtener los datos completos desde la API
+        const turnos = await apiRequest('/turnos');
+
+        if (!turnos || turnos.length === 0) {
+            showAlert('dashAlertContainer', 'No hay turnos registrados para exportar.', 'info');
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        const fechaActual = new Date().toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        const usuario = getUser();
+        const nombreUsuario = usuario ? (usuario.nombre || usuario.email) : 'Paciente';
+
+        // Encabezado
+        doc.setFillColor(37, 99, 235);
+        doc.rect(0, 0, 210, 30, 'F');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Salud Activa', 20, 15);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Reporte de Turnos Médicos', 20, 23);
+        doc.text(`Fecha de generación: ${fechaActual}`, 20, 29);
+
+        // Información del paciente
+        doc.setTextColor(37, 99, 235);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Paciente:', 20, 45);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont('helvetica', 'normal');
+        doc.text(nombreUsuario, 45, 45);
+
+        // Tabla de turnos
+        doc.setFontSize(10);
+        const headers = ['Especialidad', 'Médico', 'Fecha', 'Hora', 'Estado', 'Motivo'];
+        const data = turnos.map(t => [
+            t.especialidad || 'Consulta',
+            t.medico || 'No asignado',
+            t.fecha || '-',
+            t.hora || '-',
+            t.estado || 'Pendiente',
+            t.motivo || '-'
+        ]);
+
+        // Calcular altura de tabla para evitar overflow
+        const rowHeight = 8;
+        const headerHeight = 8;
+        const totalHeight = headerHeight + (turnos.length * rowHeight) + 10;
+
+        if (totalHeight > 250) {
+            // Si hay muchos turnos, agregar páginas automáticamente
+            doc.autoTable({
+                head: [headers],
+                body: data,
+                startY: 55,
+                theme: 'grid',
+                headStyles: { fillColor: [37, 99, 235], textColor: [255, 255, 255], fontSize: 9 },
+                bodyStyles: { fontSize: 8, textColor: [0, 0, 0] },
+                columnStyles: {
+                    0: { cellWidth: 35 },
+                    1: { cellWidth: 40 },
+                    2: { cellWidth: 25 },
+                    3: { cellWidth: 20 },
+                    4: { cellWidth: 25 },
+                    5: { cellWidth: 45 }
+                },
+                margin: { left: 20, right: 20 },
+                didDrawPage: function (data) {
+                    doc.setFontSize(8);
+                    doc.setTextColor(150, 150, 150);
+                    doc.text(`Página ${data.pageNumber}`, 20, 285);
+                }
+            });
+        } else {
+            doc.autoTable({
+                head: [headers],
+                body: data,
+                startY: 55,
+                theme: 'grid',
+                headStyles: { fillColor: [37, 99, 235], textColor: [255, 255, 255], fontSize: 9 },
+                bodyStyles: { fontSize: 8, textColor: [0, 0, 0] },
+                columnStyles: {
+                    0: { cellWidth: 35 },
+                    1: { cellWidth: 40 },
+                    2: { cellWidth: 25 },
+                    3: { cellWidth: 20 },
+                    4: { cellWidth: 25 },
+                    5: { cellWidth: 45 }
+                },
+                margin: { left: 20, right: 20 }
+            });
+        }
+
+        // Pie de página
+        const finalY = doc.lastAutoTable.finalY + 10;
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text('Generado por Salud Activa - Portal Web de Pacientes', 20, finalY);
+        doc.text('Este documento es un resumen de citas médicas agendadas.', 20, finalY + 5);
+
+        // Descargar archivo
+        const nombreArchivo = `turnos-saludactiva-${fechaActual.replace(/ /g, '-')}.pdf`;
+        doc.save(nombreArchivo);
+
+        showAlert('dashAlertContainer', `PDF descargado: ${nombreArchivo}`, 'success');
+    } catch (err) {
+        showAlert('dashAlertContainer', err.message || 'Error al exportar PDF', 'danger');
+    } finally {
+        if (btn) {
+            btn.innerHTML = originalBtnText;
+            btn.disabled = false;
+        }
     }
 }
 
@@ -582,6 +1079,11 @@ async function cargarEstudios() {
                     </div>
                     <p class="small text-secondary mb-2"><i class="fa-regular fa-calendar me-1 text-info"></i> ${e.fecha || 'N/A'}</p>
                     ${e.descripcion ? `<p class="small text-secondary mb-3 bg-body-tertiary p-2 rounded">${e.descripcion}</p>` : ''}
+                    ${e.urlDocumento ? `
+                        <a href="${API_BASE_URL}${e.urlDocumento}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill mb-2">
+                            <i class="fa-solid fa-download me-1"></i> Ver Documento
+                        </a>
+                    ` : ''}
                     <button class="btn btn-outline-danger btn-sm rounded-pill mt-auto" onclick="eliminarEstudio('${e._id || e.id}')">
                         <i class="fa-solid fa-trash me-1"></i> Eliminar Estudio
                     </button>
@@ -607,25 +1109,64 @@ async function eliminarEstudio(id) {
 async function cargarChat() {
     const box = document.getElementById('chatMessages');
     if (!box) return;
+
+    // Estado de carga
+    box.innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="small text-secondary mt-2">Cargando conversación...</p>
+        </div>
+    `;
+
     try {
         const msgs = await apiRequest('/chat');
+
         if (!msgs || msgs.length === 0) {
-            box.innerHTML = `<div class="text-center text-secondary py-5">Inicia tu consulta enviando un mensaje al asistente.</div>`;
+            box.innerHTML = `
+                <div class="text-center text-secondary py-5">
+                    <i class="fa-solid fa-comments fa-3x mb-3 opacity-50 d-block"></i>
+                    <p class="mb-0">Inicia tu consulta enviando un mensaje al asistente.</p>
+                </div>
+            `;
             return;
         }
 
+        // Formatear fecha para mostrar
+        const formatTime = (isoString) => {
+            if (!isoString) return '';
+            try {
+                const date = new Date(isoString);
+                return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            } catch (e) {
+                return isoString;
+            }
+        };
+
         box.innerHTML = msgs.map(m => {
             const isMe = m.remitente === 'usuario' || m.isUser || m.sender === 'user';
+            const time = formatTime(m.fecha || m.timestamp || m.createdAt);
             return `
-                <div class="chat-bubble ${isMe ? 'sent' : 'received'}">
-                    <div>${m.mensaje || m.texto || ''}</div>
-                    <div class="small opacity-75 text-end mt-1" style="font-size:0.75rem">${m.fecha || ''}</div>
+                <div class="chat-message ${isMe ? 'sent' : 'received'} mb-3 d-flex ${isMe ? 'justify-content-end' : 'justify-content-start'}">
+                    <div class="chat-bubble ${isMe ? 'sent' : 'received'}">
+                        <div class="message-text">${m.mensaje || m.texto || ''}</div>
+                        <div class="message-time">${time}</div>
+                    </div>
                 </div>
             `;
         }).join('');
+
+        // Scroll automático al final
         box.scrollTop = box.scrollHeight;
     } catch (err) {
-        box.innerHTML = `<div class="text-center text-secondary py-5">Inicia tu consulta enviando un mensaje.</div>`;
+        box.innerHTML = `
+            <div class="text-center text-danger py-4">
+                <i class="fa-solid fa-triangle-exclamation fa-2x mb-2"></i>
+                <p class="mb-0 small">No se pudo cargar la conversación. Intenta de nuevo.</p>
+                <button class="btn btn-sm btn-outline-danger mt-2" onclick="cargarChat()">
+                    <i class="fa-solid fa-rotate-right me-1"></i> Reintentar
+                </button>
+            </div>
+        `;
     }
 }
 

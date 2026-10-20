@@ -1,13 +1,14 @@
 const mongoose = require('mongoose');
+const env = require('./env');
 
 // Helper para construir la URI aislada por dominio de forma segura (Regla 7.1)
 function getDomainDbUri(domainName) {
-    const envVarName = `${domainName.toUpperCase()}_MONGODB_URI`;
-    if (process.env[envVarName]) {
-        return process.env[envVarName];
+    const key = `${domainName.toUpperCase()}_MONGODB_URI`;
+    if (env[key]) {
+        return env[key];
     }
 
-    const baseUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/SaludActiva';
+    const baseUri = env.MONGODB_URI;
     try {
         if (baseUri.includes('?')) {
             const parts = baseUri.split('?');

@@ -2,16 +2,14 @@ const express = require('express');
 const router = express.Router();
 const rateLimit = require('express-rate-limit');
 const authenticateToken = require('../../../../../middleware/auth');
+const { JWT_SECRET } = require('../../../../../config/env');
 
 const MongooseUserRepository = require('../../persistence/MongooseUserRepository');
 const RegisterUser = require('../../../../application/use-cases/RegisterUser');
 const LoginUser = require('../../../../application/use-cases/LoginUser');
 const AuthController = require('./AuthController');
 
-if (!process.env.JWT_SECRET) {
-    throw new Error('FATAL: JWT_SECRET no está definido. Configúralo en .env (local) o en las variables de entorno del despliegue.');
-}
-const SECRET_KEY = process.env.JWT_SECRET;
+const SECRET_KEY = JWT_SECRET;
 
 const userRepository = new MongooseUserRepository();
 const registerUser = new RegisterUser(userRepository);

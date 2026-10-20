@@ -1,10 +1,11 @@
 const admin = require('firebase-admin');
+const { FIREBASE_SERVICE_ACCOUNT } = require('../config/env');
 
 // Intenta inicializar con variables de entorno para evitar archivos JSON sensibles en el repo
 if (!admin.apps.length) {
     try {
-        if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-            let jsonString = process.env.FIREBASE_SERVICE_ACCOUNT.trim();
+        if (FIREBASE_SERVICE_ACCOUNT) {
+            let jsonString = FIREBASE_SERVICE_ACCOUNT.trim();
 
             // Eliminar comillas simples o dobles accidentales al principio y al final
             if ((jsonString.startsWith("'") && jsonString.endsWith("'")) ||

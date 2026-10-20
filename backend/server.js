@@ -1,15 +1,14 @@
-require('dotenv').config();
+const env = require('./config/env');
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-
 const path = require('path');
 
 // --- APP CONFIG ---
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = env.PORT;
 
 // Limpiador general de peticiones (100 por cada 15 min por IP)
 const generalLimiter = rateLimit({
@@ -21,7 +20,7 @@ const generalLimiter = rateLimit({
 
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(generalLimiter);
-app.use(cors());
+app.use(cors({ origin: env.CORS_ORIGIN }));
 app.use(express.json());
 
 // Archivos estáticos del cliente Web (si la carpeta web existe)
@@ -31,23 +30,16 @@ app.use(express.static(path.join(__dirname, 'web')));
 // Archivos subidos por usuarios (documentos de estudios médicos)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// --- CONEXIÓN MONGODB ---
-if (!process.env.MONGODB_URI) {
-    console.error('❌ ERROR: MONGODB_URI no definida en .env');
-    // No salimos del proceso para permitir que Render nos muestre logs
-}
-
 let dbStatus = 'Desconectado';
 
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(env.MONGODB_URI)
     .then(() => {
-        console.log('✅ MongoDB Atlas conectado a:', mongoose.connection.name);
-        dbStatus = 'Conectado a MongoDB Atlas';
+        console.log('✅ MongoDB conectado a:', mongoose.connection.name);
+        dbStatus = 'Conectado a MongoDB';
     })
     .catch(err => {
         console.error('❌ Error MongoDB:', err.message);
         dbStatus = `Error de Conexión: ${err.message}`;
-        // IMPORTANTE: Ya no usamos process.exit(1) para que el servidor no se caiga
     });
 
 // --- IMPORTAR RUTAS ---
@@ -66,21 +58,30 @@ app.use('/api/estudios', estudioRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/chat', chatRoutes);
 
-// --- ROOT & LISTEN ---
+// --- ROOT & HEALTH ---
 app.get('/', (req, res) => {
     res.send(`
         <h1>🚀 Salud Activa Backend Online</h1>
         <p><b>Estado DB:</b> ${dbStatus}</p>
-        <p><b>Versión:</b> 1.2.1 (Resiliente)</p>
+        <p><b>Versión:</b> ${env.APP_VERSION}</p>
         <p><b>Fecha Servidor:</b> ${new Date().toLocaleString()}</p>
     `);
 });
 app.get('/api/status', (req, res) => res.json({ status: 'online', timestamp: new Date() }));
+app.get('/api/health', (req, res) => {
+    res.status(200).json({
+        status: 'UP',
+        timestamp: new Date().toISOString(),
+        dbStatus: dbStatus,
+        service: 'saludactiva-api',
+        version: env.APP_VERSION
+    });
+});
 
 if (require.main === module) {
     app.listen(PORT, '0.0.0.0', () => {
         console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
-        console.log(`📡 Rutas cargadas: Auth, Turnos, Medicamentos, Estudios, Admin`);
+        console.log(`📡 Rutas cargadas: Auth, Turnos, Medicamentos, Estudios, Admin, Chat`);
     });
 }
 

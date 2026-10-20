@@ -4,10 +4,11 @@ const User = require('../models/User');
 const Turno = require('../models/Turno');
 const Medicamento = require('../models/Medicamento');
 const Estudio = require('../models/Estudio');
+const { ADMIN_KEY } = require('../config/env');
 
 router.delete('/reset-database', async (req, res) => {
     const adminKey = req.headers['x-admin-key'];
-    if (!adminKey || adminKey !== process.env.ADMIN_KEY) {
+    if (!adminKey || adminKey !== ADMIN_KEY) {
         console.warn(`⚠️ Intento de reset no autorizado desde IP: ${req.ip}`);
         return res.status(403).json({ mensaje: "No autorizado" });
     }

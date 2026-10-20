@@ -5,11 +5,9 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const authenticateToken = require('../middleware/auth');
 const rateLimit = require('express-rate-limit');
+const { JWT_SECRET, NODE_ENV } = require('../config/env');
 
-if (!process.env.JWT_SECRET) {
-    throw new Error('FATAL: JWT_SECRET no está definido. Configúralo en .env (local) o en las variables de entorno del despliegue.');
-}
-const SECRET_KEY = process.env.JWT_SECRET;
+const SECRET_KEY = JWT_SECRET;
 
 // LIMITADOR DE PETICIONES (Evita fuerza bruta)
 const authLimiter = rateLimit({
@@ -90,7 +88,7 @@ router.post('/login', authLimiter, async (req, res) => {
         res.status(500).json({
             mensaje: "Error interno en el servidor",
             detalle: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            stack: NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 });

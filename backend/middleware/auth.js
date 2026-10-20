@@ -1,6 +1,9 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const SECRET_KEY = process.env.JWT_SECRET || 'SaludActiva_Secret_Key_2024';
+if (!process.env.JWT_SECRET) {
+    throw new Error('FATAL: JWT_SECRET no está definido. Configúralo en .env (local) o en las variables de entorno del despliegue.');
+}
+const SECRET_KEY = process.env.JWT_SECRET;
 
 const authenticateToken = async (req, res, next) => {
     const authHeader = req.headers['authorization'];

@@ -1,46 +1,69 @@
 const env = require('./config/env');
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 
-// --- APP CONFIG ---
+const {
+    authConnection,
+    turnosConnection,
+    medicamentosConnection,
+    estudiosConnection,
+    chatConnection
+} = require('./config/dbConnections');
+
 const app = express();
 const PORT = env.PORT;
 
-// Limpiador general de peticiones (100 por cada 15 min por IP)
+app.use(helmet({ contentSecurityPolicy: false }));
+
+// EXCLUIR /api/health del rate limiting para el HEALTHCHECK de Docker y CI/CD
 const generalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
     standardHeaders: true,
     legacyHeaders: false,
+    skip: (req) => req.path === '/api/health' || req.path === '/health'
 });
 
-app.use(helmet({ contentSecurityPolicy: false }));
 app.use(generalLimiter);
 app.use(cors({ origin: env.CORS_ORIGIN }));
 app.use(express.json());
 
-// Archivos estáticos del cliente Web (si la carpeta web existe)
+// Archivos estáticos del cliente Web
 app.use(express.static(path.join(__dirname, '../web')));
 app.use(express.static(path.join(__dirname, 'web')));
 
 // Archivos subidos por usuarios (documentos de estudios médicos)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-let dbStatus = 'Desconectado';
+// --- HEALTHCHECK (Verifica la salud de las 5 bases de datos de dominio) ---
+app.get('/api/health', (req, res) => {
+    const bases = {
+        auth: authConnection.readyState === 1 ? 'ok' : 'disconnected',
+        turnos: turnosConnection.readyState === 1 ? 'ok' : 'disconnected',
+        medicamentos: medicamentosConnection.readyState === 1 ? 'ok' : 'disconnected',
+        estudios: estudiosConnection.readyState === 1 ? 'ok' : 'disconnected',
+        chat: chatConnection.readyState === 1 ? 'ok' : 'disconnected',
+    };
 
-mongoose.connect(env.MONGODB_URI)
-    .then(() => {
-        console.log('✅ MongoDB conectado a:', mongoose.connection.name);
-        dbStatus = 'Conectado a MongoDB';
-    })
-    .catch(err => {
-        console.error('❌ Error MongoDB:', err.message);
-        dbStatus = `Error de Conexión: ${err.message}`;
-    });
+    const allConnected = Object.values(bases).every(status => status === 'ok');
+
+    const responsePayload = {
+        estado: allConnected ? 'ok' : 'error',
+        version: env.APP_VERSION,
+        bases
+    };
+
+    if (allConnected) {
+        return res.status(200).json(responsePayload);
+    } else {
+        return res.status(503).json(responsePayload);
+    }
+});
+
+app.get('/api/status', (req, res) => res.json({ status: 'online', timestamp: new Date() }));
 
 // --- IMPORTAR RUTAS ---
 const authRoutes = require('./src/infrastructure/adapters/http/express/AuthRoutes');
@@ -58,24 +81,16 @@ app.use('/api/estudios', estudioRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/chat', chatRoutes);
 
-// --- ROOT & HEALTH ---
+// --- ROOT ---
 app.get('/', (req, res) => {
+    const allConnected = [authConnection, turnosConnection, medicamentosConnection, estudiosConnection, chatConnection]
+        .every(conn => conn.readyState === 1);
     res.send(`
         <h1>🚀 Salud Activa Backend Online</h1>
-        <p><b>Estado DB:</b> ${dbStatus}</p>
+        <p><b>Estado DB:</b> ${allConnected ? 'Conectado (5 dominios)' : 'Degradado / Desconectado'}</p>
         <p><b>Versión:</b> ${env.APP_VERSION}</p>
         <p><b>Fecha Servidor:</b> ${new Date().toLocaleString()}</p>
     `);
-});
-app.get('/api/status', (req, res) => res.json({ status: 'online', timestamp: new Date() }));
-app.get('/api/health', (req, res) => {
-    res.status(200).json({
-        status: 'UP',
-        timestamp: new Date().toISOString(),
-        dbStatus: dbStatus,
-        service: 'saludactiva-api',
-        version: env.APP_VERSION
-    });
 });
 
 if (require.main === module) {

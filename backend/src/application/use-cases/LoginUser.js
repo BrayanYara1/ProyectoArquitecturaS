@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { ErrorValidacion } = require('../../../errors/CustomErrors');
 
 class LoginUser {
     constructor(userRepository, secretKey) {
@@ -8,14 +9,22 @@ class LoginUser {
     }
 
     async execute({ email, contrasena }) {
+        if (!email || !contrasena) {
+            throw new ErrorValidacion("Email y contraseña son obligatorios");
+        }
+
         const user = await this.userRepository.findByEmail(email);
         if (!user) {
-            throw new Error("Credenciales inválidas");
+            const err = new ErrorValidacion("Credenciales inválidas");
+            err.statusCode = 401;
+            throw err;
         }
 
         const isPasswordValid = await bcrypt.compare(contrasena, user.contrasena);
         if (!isPasswordValid) {
-            throw new Error("Credenciales inválidas");
+            const err = new ErrorValidacion("Credenciales inválidas");
+            err.statusCode = 401;
+            throw err;
         }
 
         const token = jwt.sign({ userId: user.id }, this.secretKey, { expiresIn: '30d' });

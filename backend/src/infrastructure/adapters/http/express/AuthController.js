@@ -5,28 +5,25 @@ class AuthController {
         this.userRepository = userRepository;
     }
 
-    async register(req, res) {
+    async register(req, res, next) {
         try {
             const result = await this.registerUser.execute(req.body);
             res.status(201).json({ mensaje: "OK", email: result.email });
         } catch (error) {
-            res.status(400).json({ mensaje: error.message });
+            next(error);
         }
     }
 
-    async login(req, res) {
+    async login(req, res, next) {
         try {
             const result = await this.loginUser.execute(req.body);
             res.json({ mensaje: "OK", ...result });
         } catch (error) {
-            if (error.message === "Credenciales inválidas") {
-                return res.status(401).json({ mensaje: error.message });
-            }
-            res.status(500).json({ mensaje: "Error interno en el servidor", detalle: error.message });
+            next(error);
         }
     }
 
-    async updateProfile(req, res) {
+    async updateProfile(req, res, next) {
         try {
             const { nombre, telefono, tipoSanguineo, alergias, condiciones, contactoEmergencia } = req.body;
             const user = await this.userRepository.update(
@@ -46,17 +43,17 @@ class AuthController {
                 contactoEmergencia: user.contactoEmergencia
             });
         } catch (error) {
-            res.status(500).json({ mensaje: "Error al actualizar perfil", detalle: error.message });
+            next(error);
         }
     }
 
-    async updateFcmToken(req, res) {
+    async updateFcmToken(req, res, next) {
         try {
             const { token } = req.body;
             await this.userRepository.update(req.userId, { fcmToken: token });
             res.status(200).send();
         } catch (error) {
-            res.status(500).json({ mensaje: "Error FCM", detalle: error.message });
+            next(error);
         }
     }
 }

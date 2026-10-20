@@ -1,7 +1,7 @@
 class EnviarMensajeChat {
-    constructor(chatRepository, notificationService = null) {
+    constructor(chatRepository, notificarUsuario = null) {
         this.chatRepository = chatRepository;
-        this.notificationService = notificationService;
+        this.notificarUsuario = notificarUsuario;
     }
 
     async obtenerHistorial(usuarioId) {
@@ -24,20 +24,24 @@ class EnviarMensajeChat {
             texto: contenidoTexto.trim()
         });
 
-        // Simulación: Respuesta automática del doctor después de 2 segundos
+        // Simulación: Respuesta automática del doctor con try/catch para evitar unhandled rejections
         setTimeout(async () => {
-            await this.chatRepository.save({
-                usuarioId,
-                remitente: 'DOCTOR',
-                texto: "Hola, recibí tu mensaje. En breve un especialista revisará tu caso."
-            });
+            try {
+                await this.chatRepository.save({
+                    usuarioId,
+                    remitente: 'DOCTOR',
+                    texto: "Hola, recibí tu mensaje. En breve un especialista revisará tu caso."
+                });
 
-            if (userObj && userObj.fcmToken && this.notificationService) {
-                this.notificationService(
-                    userObj.fcmToken,
-                    "👨‍⚕️ Respuesta Médica",
-                    "Tienes un nuevo mensaje de tu doctor."
-                );
+                if (userObj && this.notificarUsuario) {
+                    await this.notificarUsuario(
+                        userObj,
+                        "👨‍⚕️ Respuesta Médica",
+                        "Tienes un nuevo mensaje de tu doctor."
+                    );
+                }
+            } catch (err) {
+                console.error("❌ Error en respuesta simulada de chat:", err.message);
             }
         }, 2000);
 

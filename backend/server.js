@@ -4,6 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const manejadorErrores = require('./middleware/errorHandler');
 
 const {
     authConnection,
@@ -91,6 +92,9 @@ app.get('/', (req, res) => {
         <p><b>Fecha Servidor:</b> ${new Date().toLocaleString()}</p>
     `);
 });
+
+// --- MIDDLEWARE CENTRALIZADO DE MANEJO DE ERRORES ---
+app.use(manejadorErrores);
 
 if (require.main === module) {
     app.listen(PORT, '0.0.0.0', () => {

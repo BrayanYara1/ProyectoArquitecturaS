@@ -1,0 +1,140 @@
+name: Salud Activa — CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  test:
+    name: 1. Pruebas Unitarias Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Código Fuente
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: 'backend/package-lock.json'
+
+      - name: Instalar Dependencias
+        run: |
+          cd backend
+          npm ci
+
+      - name: Ejecutar Pruebas con Jest
+        run: |
+          cd backend
+          npm test
+
+  build-and-scan:
+    name: 2. Construcción & Escaneo Trivy
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Código Fuente
+        uses: actions/checkout@v4
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Construir Imagen Backend (API)
+        run: |
+          docker build -t saludactiva-api:local ./backend
+
+      - name: Construir Imagen Frontend (Web)
+        run: |
+          docker build -t saludactiva-web:local ./web
+
+      - name: Escaneo de Seguridad Trivy — API
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'saludactiva-api:local'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Escaneo de Seguridad Trivy — Web
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'saludactiva-web:local'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+  publish-and-deploy:
+    name: 3. Publicación GHCR & Despliegue SSH AWS EC2
+    needs: build-and-scan
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Código Fuente
+        uses: actions/checkout@v4
+
+      - name: Iniciar Sesión en GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Definir Nombres de Imagen
+        id: prep
+        run: |
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "api_image=ghcr.io/${REPO_LOWER}/saludactiva-api" >> $GITHUB_OUTPUT
+          echo "web_image=ghcr.io/${REPO_LOWER}/saludactiva-web" >> $GITHUB_OUTPUT
+
+      - name: Construir y Publicar Imagen API
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.prep.outputs.api_image }}:latest
+            ${{ steps.prep.outputs.api_image }}:${{ github.sha }}
+
+      - name: Construir y Publicar Imagen Web
+        uses: docker/build-push-action@v5
+        with:
+          context: ./web
+          file: ./web/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.prep.outputs.web_image }}:latest
+            ${{ steps.prep.outputs.web_image }}:${{ github.sha }}
+
+      - name: Desplegar en AWS EC2 por SSH
+        uses: appleboy/ssh-action@v1.0.3
+        if: secrets.EC2_HOST != ''
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME || 'ubuntu' }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/saludactiva || mkdir -p /home/ubuntu/saludactiva && cd /home/ubuntu/saludactiva
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker compose pull
+            docker compose up -d --remove-orphans
+            
+            # Verificación del estado de salud
+            echo "Verificando endpoint /api/health..."
+            sleep 5
+            curl -f http://localhost/api/health || curl -f http://localhost:3000/api/health || exit 1
+            echo "✅ Despliegue exitoso y saludable."

@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    image: saludactiva-web:latest
+    container_name: saludactiva-web
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - saludactiva-net
+    restart: always
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: saludactiva-api:latest
+    container_name: saludactiva-api
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET:-saludactiva_super_secret_jwt_key_2026}
+      - MONGODB_URI=mongodb://mongo:27017/SaludActiva
+      - AUTH_MONGODB_URI=mongodb://mongo:27017/SaludActiva_auth
+      - TURNOS_MONGODB_URI=mongodb://mongo:27017/SaludActiva_turnos
+      - MEDICAMENTOS_MONGODB_URI=mongodb://mongo:27017/SaludActiva_medicamentos
+      - ESTUDIOS_MONGODB_URI=mongodb://mongo:27017/SaludActiva_estudios
+      - CHAT_MONGODB_URI=mongodb://mongo:27017/SaludActiva_chat
+    depends_on:
+      - mongo
+    networks:
+      - saludactiva-net
+    restart: always
+
+  mongo:
+    image: mongo:7.0
+    container_name: saludactiva-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - datos-mongo:/data/db
+    networks:
+      - saludactiva-net
+    restart: always
+
+volumes:
+  datos-mongo:
+    driver: local
+
+networks:
+  saludactiva-net:
+    driver: bridge

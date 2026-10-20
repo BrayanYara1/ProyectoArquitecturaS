@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  web:
+    image: ghcr.io/brayanyara1/proyectoarquitecturas/saludactiva-web:latest
+    container_name: saludactiva-web
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+    networks:
+      - saludactiva-net
+    restart: always
+
+  api:
+    image: ghcr.io/brayanyara1/proyectoarquitecturas/saludactiva-api:latest
+    container_name: saludactiva-api
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/SaludActiva
+    depends_on:
+      - mongo
+    networks:
+      - saludactiva-net
+    restart: always
+
+  mongo:
+    image: mongo:7
+    container_name: saludactiva-mongo
+    volumes:
+      - datos-mongo:/data/db
+    networks:
+      - saludactiva-net
+    restart: always
+
+volumes:
+  datos-mongo:
+    driver: local
+
+networks:
+  saludactiva-net:
+    driver: bridge

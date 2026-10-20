@@ -16,6 +16,9 @@ const {
 const app = express();
 const PORT = env.PORT;
 
+// Confiar en el reverse proxy (Nginx) para contar IPs reales en el rate limiter
+app.set('trust proxy', 1);
+
 app.use(helmet({ contentSecurityPolicy: false }));
 
 // EXCLUIR /api/health del rate limiting para el HEALTHCHECK de Docker y CI/CD
@@ -30,10 +33,6 @@ const generalLimiter = rateLimit({
 app.use(generalLimiter);
 app.use(cors({ origin: env.CORS_ORIGIN }));
 app.use(express.json());
-
-// Archivos estáticos del cliente Web
-app.use(express.static(path.join(__dirname, '../web')));
-app.use(express.static(path.join(__dirname, 'web')));
 
 // Archivos subidos por usuarios (documentos de estudios médicos)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

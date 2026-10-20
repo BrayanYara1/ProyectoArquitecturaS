@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    image: saludactiva-web:local
+    container_name: saludactiva-web
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+    networks:
+      - saludactiva-net
+    restart: always
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: saludactiva-api:local
+    container_name: saludactiva-api
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/SaludActiva
+    depends_on:
+      - mongo
+    networks:
+      - saludactiva-net
+    restart: always
+
+  mongo:
+    image: mongo:7
+    container_name: saludactiva-mongo
+    volumes:
+      - datos-mongo:/data/db
+    networks:
+      - saludactiva-net
+    restart: always
+
+volumes:
+  datos-mongo:
+    driver: local
+
+networks:
+  saludactiva-net:
+    driver: bridge

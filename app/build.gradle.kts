@@ -25,10 +25,12 @@ android {
         debug {
             isMinifyEnabled = false
             enableUnitTestCoverage = true
+            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/\"")
         }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            buildConfigField("String", "API_BASE_URL", "\"http://saludactiva-ec2.internal:8080/\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

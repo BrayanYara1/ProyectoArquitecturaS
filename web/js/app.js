@@ -1,9 +1,7 @@
 /* App JS - Salud Activa Web Client Pro */
 
-// URL base de la API (definida en js/config.js)
-const API_BASE_URL = window.CONFIG && window.CONFIG.API_BASE_URL
-    ? window.CONFIG.API_BASE_URL
-    : 'https://saludactiva-backend.onrender.com/api';
+// URL base de la API (Ruta relativa)
+const API_BASE_URL = '/api';
 
 // Helpers de Sesión (usa sessionStorage por defecto: más seguro, se borra al cerrar pestaña)
 const storage = window.getActiveStorage();

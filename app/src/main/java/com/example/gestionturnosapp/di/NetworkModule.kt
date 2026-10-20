@@ -1,6 +1,7 @@
 package com.example.gestionturnosapp.di
 
 import android.content.Context
+import com.example.gestionturnosapp.BuildConfig
 import com.example.gestionturnosapp.data.UserManager
 import com.example.gestionturnosapp.data.remote.ApiService
 import dagger.Module
@@ -19,9 +20,9 @@ import javax.inject.Singleton
 object NetworkModule {
 
     /**
-     * URL de producción en Render.
+     * URL base de la API obtenida dinámicamente desde BuildConfig.
      */
-    private const val BASE_URL = "https://saludactiva-backend.onrender.com/"
+    private val BASE_URL = BuildConfig.API_BASE_URL
 
     @Provides
     @Singleton
@@ -43,7 +44,7 @@ object NetworkModule {
                 var tryCount = 0
                 val maxLimit = 2
 
-                // REINTENTO AUTOMÁTICO PARA ERRORES DE GATEWAY O SOBRECARGA (Render)
+                // REINTENTO AUTOMÁTICO PARA ERRORES DE GATEWAY O SOBRECARGA
                 while (!response.isSuccessful && 
                     (response.code == 500 || response.code == 502 || response.code == 503 || response.code == 504) && 
                     tryCount < maxLimit) {

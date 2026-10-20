@@ -2,8 +2,14 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const Estudio = require('../models/Estudio');
+const fs = require('fs');
 const authenticateToken = require('../middleware/auth');
+
+const MongooseEstudioRepository = require('../src/infrastructure/adapters/persistence/MongooseEstudioRepository');
+const GestionarEstudios = require('../src/application/use-cases/GestionarEstudios');
+
+const estudioRepository = new MongooseEstudioRepository();
+const gestionarEstudios = new GestionarEstudios(estudioRepository);
 
 // Configuración de multer para subida de documentos de estudios
 const storage = multer.diskStorage({
@@ -41,7 +47,7 @@ const upload = multer({
 
 router.get('/', authenticateToken, async (req, res) => {
     try {
-        const estudios = await Estudio.find({ usuarioId: req.userId }).sort({ fecha: -1, createdAt: -1 });
+        const estudios = await gestionarEstudios.listar(req.userId);
         res.json(estudios);
     } catch (error) {
         res.status(500).json({ mensaje: "Error al obtener estudios" });
@@ -55,32 +61,31 @@ router.post('/', authenticateToken, upload.single('documento'), async (req, res)
             usuarioId: req.userId,
             urlDocumento: req.file ? `/uploads/${req.file.filename}` : null
         };
-        const estudio = new Estudio(estudioData);
-        await estudio.save();
+        const estudio = await gestionarEstudios.crear(estudioData);
         res.status(201).json(estudio);
     } catch (error) {
         console.error('Error creando estudio:', error.message);
-        res.status(500).json({ mensaje: error.message || "Error al crear estudio" });
+        const statusCode = error.statusCode || 500;
+        res.status(statusCode).json({ mensaje: error.message || "Error al crear estudio" });
     }
 });
 
 router.delete('/:id', authenticateToken, async (req, res) => {
     try {
-        const estudio = await Estudio.findOne({ _id: req.params.id, usuarioId: req.userId });
+        const estudio = await gestionarEstudios.obtenerPorId(req.params.id, req.userId);
         if (!estudio) {
             return res.status(404).json({ mensaje: "Estudio no encontrado" });
         }
 
         // Eliminar archivo físico si existe
         if (estudio.urlDocumento) {
-            const fs = require('fs');
             const filePath = path.join(__dirname, '..', estudio.urlDocumento);
             if (fs.existsSync(filePath)) {
                 fs.unlinkSync(filePath);
             }
         }
 
-        await Estudio.findOneAndDelete({ _id: req.params.id, usuarioId: req.userId });
+        await gestionarEstudios.eliminar(req.params.id, req.userId);
         res.status(200).send();
     } catch (error) {
         res.status(500).json({ mensaje: "Error al eliminar estudio" });

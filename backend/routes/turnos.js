@@ -1,14 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const Turno = require('../models/Turno');
-const User = require('../models/User');
 const authenticateToken = require('../middleware/auth');
 const { sendPushNotification } = require('../middleware/notification');
+
+const MongooseTurnoRepository = require('../src/infrastructure/adapters/persistence/MongooseTurnoRepository');
+const SolicitarTurno = require('../src/application/use-cases/SolicitarTurno');
+
+const turnoRepository = new MongooseTurnoRepository();
+const solicitarTurno = new SolicitarTurno(turnoRepository);
 
 // OBTENER TURNOS DEL USUARIO
 router.get('/', authenticateToken, async (req, res) => {
     try {
-        const turnos = await Turno.find({ usuarioId: req.userId }).sort({ fecha: 1, hora: 1 });
+        const turnos = await solicitarTurno.obtenerTurnos(req.userId);
         res.json(turnos);
     } catch (error) {
         res.status(500).json({ mensaje: "Error al obtener turnos" });
@@ -19,12 +23,8 @@ router.get('/', authenticateToken, async (req, res) => {
 router.get('/check-availability', authenticateToken, async (req, res) => {
     try {
         const { fecha, hora } = req.query;
-        const turnoExistente = await Turno.findOne({
-            fecha,
-            hora,
-            estado: { $nin: ["Cancelado", "cancelled", "CANCELADO"] }
-        });
-        res.json({ disponible: !turnoExistente });
+        const disponible = await solicitarTurno.estaDisponible(fecha, hora);
+        res.json({ disponible });
     } catch (error) {
         res.status(500).json({ mensaje: "Error al verificar disponibilidad" });
     }
@@ -33,73 +33,42 @@ router.get('/check-availability', authenticateToken, async (req, res) => {
 // CREAR TURNO
 router.post('/', authenticateToken, async (req, res) => {
     try {
-        const { fecha, hora } = req.body;
-
-        const ocupado = await Turno.findOne({
-            fecha,
-            hora,
-            estado: { $nin: ["Cancelado", "cancelled", "CANCELADO"] }
-        });
-
-        if (ocupado) {
-            return res.status(400).json({ mensaje: "Este horario ya fue tomado por otro paciente" });
-        }
-
-        const nuevoTurno = new Turno({ ...req.body, usuarioId: req.userId });
-        await nuevoTurno.save();
-
-        // Helper para formato AM/PM
-        const formatAMPM = (time) => {
-            if (!time || !time.includes(':')) return time;
-            let [hours, minutes] = time.split(':');
-            hours = parseInt(hours);
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12;
-            hours = hours ? hours : 12;
-            return `${hours}:${minutes} ${ampm}`;
-        };
+        const nuevoTurno = await solicitarTurno.ejecutar({
+            ...req.body,
+            usuarioId: req.userId
+        }, req.user || {});
 
         // Enviar notificación Push de confirmación
         if (req.user && req.user.fcmToken) {
             sendPushNotification(
                 req.user.fcmToken,
                 "✅ Turno Confirmado",
-                `Tu cita para el ${fecha} a las ${formatAMPM(hora)} ha sido agendada con éxito.`,
-                { turnoId: nuevoTurno._id.toString(), type: "TURNO_CONFIRMADO" }
-            ).then(result => {
-                if (result && result.error === 'NotRegistered') {
-                    User.findByIdAndUpdate(req.userId, { fcmToken: null }).exec();
-                }
-            });
+                `Tu cita para el ${nuevoTurno.fecha} a las ${nuevoTurno.hora} ha sido agendada con éxito.`,
+                { turnoId: String(nuevoTurno.id), type: "TURNO_CONFIRMADO" }
+            );
         }
 
         res.status(201).json(nuevoTurno);
     } catch (error) {
-        console.error("❌ Error al crear turno:", error);
-        res.status(500).json({ mensaje: "Error al crear turno", error: error.message });
+        const statusCode = error.statusCode || 500;
+        res.status(statusCode).json({ mensaje: error.message || "Error al crear turno" });
     }
 });
 
 // ELIMINAR/CANCELAR TURNO
 router.delete('/:id', authenticateToken, async (req, res) => {
     try {
-        const turno = await Turno.findOne({ _id: req.params.id, usuarioId: req.userId });
-        if (!turno) return res.status(404).json({ mensaje: "Turno no encontrado" });
-
-        await Turno.findByIdAndDelete(req.params.id);
+        const eliminado = await solicitarTurno.cancelarTurno(req.params.id, req.userId);
+        if (!eliminado) return res.status(404).json({ mensaje: "Turno no encontrado" });
 
         // Notificar cancelación
         if (req.user && req.user.fcmToken) {
             sendPushNotification(
                 req.user.fcmToken,
                 "⚠️ Turno Cancelado",
-                `Has cancelado tu turno del día ${turno.fecha}.`,
+                `Has cancelado tu turno del día ${eliminado.fecha}.`,
                 { type: "TURNO_CANCELADO" }
-            ).then(result => {
-                if (result && result.error === 'NotRegistered') {
-                    User.findByIdAndUpdate(req.userId, { fcmToken: null }).exec();
-                }
-            });
+            );
         }
 
         res.status(200).send();

@@ -1,37 +1,47 @@
-# --- Etapa 1: Construcción ---
-FROM node:18-alpine AS builder
+# --- Etapa 1: Base (producción mínima) ---
+FROM node:22-alpine AS base
 
 WORKDIR /app
 
 # Copiar archivos de definición de dependencias
 COPY package*.json ./
 
-# Instalar dependencias
-RUN npm install
+# Instalar solo dependencias de producción
+RUN npm ci --omit=dev
 
-# Copiar el código fuente
-COPY . .
+# Copiar código fuente del backend
+COPY src ./src
+COPY config ./config
+COPY routes ./routes
+COPY models ./models
+COPY middleware ./middleware
+COPY server.js ./server.js
 
-# --- Etapa 2: Producción ---
-FROM node:18-alpine
+# --- Etapa 2: Test (ejecución de pruebas automatizadas) ---
+FROM node:22-alpine AS test
 
-# Definir variables de entorno de producción
-ENV NODE_ENV=production
 WORKDIR /app
 
-# Copiar solo lo necesario desde la etapa de construcción
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app ./
+COPY package*.json ./
+RUN npm ci
 
-# Eliminar dependencias de desarrollo para ahorrar espacio (opcional si usaste npm ci --only=production)
-RUN npm prune --production
+COPY . .
+RUN npm test
 
-# Usar un usuario no raíz por seguridad (la imagen de node ya trae el usuario 'node')
+# --- Etapa 3: Producción ---
+FROM base AS prod
+
+ARG APP_VERSION=1.2.1
+ENV NODE_ENV=production
+ENV APP_VERSION=${APP_VERSION}
+
+WORKDIR /app
+
 USER node
 
-# Exponer el puerto
 EXPOSE 3000
 
-# Comando para arrancar la app
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:3000/api/health || exit 1
+
 CMD [ "node", "server.js" ]

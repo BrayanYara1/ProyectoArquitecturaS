@@ -1,0 +1,12 @@
+# Manejo de saltos de línea consistentes
+* text=auto eol=lf
+*.bat eol=crlf
+*.cmd eol=crlf
+gradlew.bat eol=crlf
+
+# Archivos binarios
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.apk binary
+*.jar binary

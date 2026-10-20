@@ -7,3 +7,7 @@ terraform.tfstate*
 *.tfvars
 Dockerfile
 README.md
+tests
+*.json
+!package*.json
+coverage
